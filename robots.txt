@@ -25,7 +25,6 @@ Allow: /
 Disallow: /api/
 Disallow: /cache/
 Disallow: /core/
-Disallow: /home/setting.php
 
 # 网站地图（让爬虫知道 sitemap 的位置）
 Sitemap: https://hot.cc/sitemap.xml

@@ -6,6 +6,13 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "17605422",
+      "name": "闪电",
+      "font_class": "shandian",
+      "unicode": "e80f",
+      "unicode_decimal": 59407
+    },
+    {
       "icon_id": "4733459",
       "name": "幼儿园",
       "font_class": "youeryuan",

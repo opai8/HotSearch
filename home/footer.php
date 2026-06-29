@@ -41,6 +41,7 @@ $cfg = $GLOBALS['site_config'];
             <div class="status">
                 <span class="status-dot"></span>
                 <span>服务运行正常</span>
+                <span class="gen-time" style="margin-left:12px; color:#999; font-size:12px;"><!--GEN_TIME_PLACEHOLDER--></span>
             </div>
         </div>
     </footer>
@@ -49,6 +50,32 @@ $cfg = $GLOBALS['site_config'];
     <!-- ===== 脚本引用 ===== -->
     <script src="/assets/js/script.js"></script>
     <script src="/assets/js/header.js"></script>
+    <script>
+    /**
+     * 清理 OPcache + 页面缓存
+     * 使用项目已有的 showToast 弹窗函数
+     */
+    function clearOpcache() {
+        showToast('正在清理缓存...', 'info');
+        fetch('/core/clear_opcache.php?key=<?php echo $cfg['opcache_clear_key']; ?>')
+            .then(function(r) { return r.json(); })
+            .then(function(res) {
+                if (res.success) {
+                    var msg = 'OPcache 清理成功';
+                    if (res.page_cache_cleared && res.page_cache_deleted > 0) {
+                        msg += '，页面缓存已清除 ' + res.page_cache_deleted + ' 个';
+                    }
+                    showToast(msg + '，正在刷新...', 'success');
+                    setTimeout(function() { location.reload(); }, 800);
+                } else {
+                    showToast('清理失败: ' + (res.message || '未知错误'), 'error');
+                }
+            })
+            .catch(function() {
+                showToast('请求失败，请检查网络', 'error');
+            });
+    }
+    </script>
     <script>
         // 新手提示：
         // 页面加载完成后，把每张卡片的完整热搜数据注入到对应的 .hot-card DOM 上，

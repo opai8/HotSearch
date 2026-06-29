@@ -392,39 +392,53 @@ function cleanAllExpiredCache($expireSeconds = 86400) {
     $now = time();
     $count = 0;
 
-    // 找出 cache 目录下所有 .json 文件
+    // 清理平台数据缓存（.json）
     $files = glob($cacheDir . '/*.json');
-    if (empty($files)) {
-        return 0;
+    if (!empty($files)) {
+        foreach ($files as $file) {
+            if (!is_file($file)) {
+                continue;
+            }
+
+            $basename = basename($file);
+            if ($basename === '.htaccess') {
+                continue;
+            }
+
+            if (!preg_match('/^[a-z0-9_]+_\d{8}_\d{6}\.json$/', $basename)) {
+                continue;
+            }
+
+            $mtime = @filemtime($file);
+            if ($mtime === false) {
+                continue;
+            }
+
+            if ($now - $mtime >= $expireSeconds) {
+                if (@unlink($file)) {
+                    $count++;
+                }
+            }
+        }
     }
 
-    foreach ($files as $file) {
-        // 跳过 .htaccess 和非文件
-        if (!is_file($file)) {
-            continue;
-        }
+    // 清理页面级静态缓存（page_index_*.html）
+    $pageFiles = glob($cacheDir . '/page_index_*.html');
+    if (!empty($pageFiles)) {
+        foreach ($pageFiles as $f) {
+            if (!is_file($f)) {
+                continue;
+            }
 
-        // 跳过 .htaccess 等非缓存文件
-        $basename = basename($file);
-        if ($basename === '.htaccess') {
-            continue;
-        }
+            $mtime = @filemtime($f);
+            if ($mtime === false) {
+                continue;
+            }
 
-        // 只清理符合命名规范的缓存文件
-        // 格式: {platform}_YYYYMMDD_HHMMSS.json
-        if (!preg_match('/^[a-z0-9_]+_\d{8}_\d{6}\.json$/', $basename)) {
-            continue;
-        }
-
-        // 用文件修改时间判断是否过期
-        $mtime = @filemtime($file);
-        if ($mtime === false) {
-            continue;
-        }
-
-        if ($now - $mtime >= $expireSeconds) {
-            if (@unlink($file)) {
-                $count++;
+            if ($now - $mtime >= $expireSeconds) {
+                if (@unlink($f)) {
+                    $count++;
+                }
             }
         }
     }

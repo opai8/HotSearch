@@ -25,7 +25,7 @@
 $site_name = '今日热榜';
 $site_desc = '多平台实时热点聚合';
 $favicon = '/assets/images/favicon.png';
-$home_url = '/index.php';
+$home_url = '/';
 ?>
 <!DOCTYPE html>
 <html lang="zh-CN">

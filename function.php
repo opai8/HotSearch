@@ -30,5 +30,5 @@ require_once __DIR__ . '/core/fetcher.php';
 //   - 想调整的话：改第一个参数（概率百分比），第二个参数（过期秒数）
 //   - 不需要的话，直接注释掉下面这一行即可（不影响方案A的写入时清理）
 // ========================================
-// maybeCleanExpiredCache(1, 86400);
+maybeCleanExpiredCache(1, 86400);
 ?>
