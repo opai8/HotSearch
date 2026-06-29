@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>接口测试页 - 热搜聚合</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, "Microsoft YaHei", sans-serif; background: #f5f5f5; margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 960px; margin: 0 auto; background: #fff; padding: 24px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+        h1 { margin-top: 0; color: #333; }
+        a.back { display: inline-block; padding: 6px 14px; background: #1890ff; color: #fff; text-decoration: none; border-radius: 4px; margin-bottom: 16px; }
+        .tip { background: #e6f7ff; border: 1px solid #91d5ff; padding: 10px 14px; border-radius: 4px; color: #0050b3; margin-bottom: 20px; font-size: 14px; line-height: 1.6; }
+        .tip code { background: #fff; padding: 1px 6px; border-radius: 3px; font-family: Consolas, Menlo, monospace; color: #c7254e; }
+        .platforms { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .p-btn { padding: 10px 14px; background: #fff; border: 1px solid #d9d9d9; border-radius: 4px; cursor: pointer; text-align: center; transition: all 0.2s; font-size: 14px; }
+        .p-btn:hover { border-color: #1890ff; color: #1890ff; }
+        .p-btn.active { background: #1890ff; color: #fff; border-color: #1890ff; }
+        .controls { margin-bottom: 20px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .controls label { font-size: 14px; }
+        .controls input { padding: 6px 10px; border: 1px solid #d9d9d9; border-radius: 4px; width: 100px; font-size: 14px; }
+        .btn { padding: 8px 16px; background: #1890ff; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .btn:hover { background: #096dd9; }
+        .btn-gray { background: #52c41a; }
+        .btn-gray:hover { background: #389e0d; }
+        .url-bar { background: #fafafa; border: 1px solid #eee; padding: 10px 14px; border-radius: 4px; font-family: Consolas, Menlo, monospace; font-size: 13px; color: #555; margin-bottom: 16px; word-break: break-all; }
+        .result-box { background: #0f172a; color: #e2e8f0; padding: 16px; border-radius: 6px; font-family: Consolas, Menlo, monospace; font-size: 13px; line-height: 1.55; max-height: 500px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
+        .result-box.success { border-left: 4px solid #52c41a; }
+        .result-box.error { border-left: 4px solid #ff4d4f; }
+        .loading { color: #faad14; }
+        .small { font-size: 12px; color: #888; margin-top: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 接口测试页</h1>
+        <a href="../index.php" class="back">← 返回首页</a>
+
+        <div class="tip">
+            选择一个平台，点击"发起请求"即可看到该平台返回的 JSON 数据。<br>
+            请求 URL: <code>/api/index.php/{平台}?limit=条数</code><br>
+            APP 调用时直接 GET 这个 URL 即可拿到 JSON。
+        </div>
+
+        <div class="platforms" id="platformList">
+            <!-- 平台按钮会由 JS 注入 -->
+        </div>
+
+        <div class="controls">
+            <label>limit: <input type="number" id="limitInput" value="5" min="1" max="100"></label>
+            <button class="btn" onclick="sendRequest()">🚀 发起请求</button>
+            <button class="btn btn-gray" onclick="clearResult()">🗑 清空</button>
+            <button class="btn" style="background:#ff4d4f" onclick="clearCache()">🧹 清除缓存</button>
+        </div>
+
+        <div class="url-bar" id="urlBar">（点击平台后这里会显示请求地址）</div>
+        <div class="result-box" id="resultBox">请选择平台并点击"发起请求"...</div>
+
+        <div class="small">
+            返回数据结构为 <code>{ success, title, total, data: [...] }</code>。<br>
+            <code>data</code> 为热搜条目数组，每条包含 <code>index / title / url / hot</code> 等字段。<br>
+            首页卡片底部的"🔄 刷新"按钮会重新从平台拉取最新数据并写入缓存。
+        </div>
+    </div>
+
+<script>
+    const platforms = [
+        { id: 'baidu',       name: '百度' },
+        { id: 'bilibili',    name: 'B站' },
+        { id: 'weibo',       name: '微博' },
+        { id: 'zhihu',       name: '知乎热榜' },
+        { id: 'zhihu_daily', name: '知乎日报' },
+        { id: 'hupu',        name: '虎扑步行街' },
+        { id: 'douyin',      name: '抖音' },
+        { id: 'tieba',       name: '百度贴吧' },
+        { id: 'yystv',       name: '游研社' },
+        { id: 'toutiao',     name: '今日头条' },
+        { id: 'thepaper',    name: '澎湃新闻' },
+        { id: 'sspai',       name: '少数派' },
+        { id: 'history',     name: '历史上的今天' },
+        { id: 'weread',      name: '微信读书' },
+        { id: 'v2ex',        name: 'V2EX' },
+        { id: 'nytimes',     name: '纽约时报中文' },
+        { id: 'ifanr',       name: '爱范儿' },
+        { id: 'github',      name: 'GitHub' },
+        { id: 'hellogithub', name: 'HelloGitHub' },
+        { id: 'guokr',       name: '果壳网' },
+        { id: 'huxiu',       name: '虎嗅' },
+        { id: 'juejin',      name: '掘金' },
+        { id: 'pojie52',     name: '52破解' },
+        { id: 'javbus',      name: 'JavBus' },
+    ];
+
+    let currentPlatform = 'baidu';
+
+    // 渲染平台按钮列表
+    function renderPlatforms() {
+        const box = document.getElementById('platformList');
+        box.innerHTML = '';
+        platforms.forEach(function (p) {
+            const btn = document.createElement('button');
+            btn.className = 'p-btn' + (p.id === currentPlatform ? ' active' : '');
+            btn.textContent = p.name + ' (' + p.id + ')';
+            btn.onclick = function () {
+                currentPlatform = p.id;
+                renderPlatforms();
+                updateUrlBar();
+            };
+            box.appendChild(btn);
+        });
+    }
+
+    // 构造请求 URL（路径方式: /api/index.php/{platform}?limit=N）
+    function updateUrlBar() {
+        const limit = document.getElementById('limitInput').value || 5;
+        let url = '/api/index.php/' + encodeURIComponent(currentPlatform)
+                + '?limit=' + limit;
+        document.getElementById('urlBar').textContent = 'GET ' + window.location.origin + url;
+        return url;
+    }
+
+    function sendRequest() {
+        const url = updateUrlBar();
+        const box = document.getElementById('resultBox');
+        box.className = 'result-box';
+        box.innerHTML = '<span class="loading">⏳ 请求中...（' + currentPlatform + '）</span>';
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.timeout = 15000;
+        xhr.setRequestHeader('Accept', 'application/json');
+
+        xhr.onload = function () {
+            try {
+                const json = JSON.parse(xhr.responseText);
+                const pretty = JSON.stringify(json, null, 2);
+                const isOk = xhr.status === 200 && json.success && Array.isArray(json.data);
+                box.className = 'result-box ' + (isOk ? 'success' : 'error');
+                box.textContent = 'HTTP ' + xhr.status + '\n\n' + pretty;
+            } catch (e) {
+                box.className = 'result-box error';
+                box.textContent = '❌ JSON 解析失败\n原始响应:\n' + xhr.responseText;
+            }
+        };
+        xhr.onerror = function () {
+            box.className = 'result-box error';
+            box.textContent = '❌ 网络错误';
+        };
+        xhr.ontimeout = function () {
+            box.className = 'result-box error';
+            box.textContent = '❌ 请求超时';
+        };
+        xhr.send();
+    }
+
+    function clearResult() {
+        document.getElementById('resultBox').className = 'result-box';
+        document.getElementById('resultBox').textContent = '请选择平台并点击"发起请求"...';
+    }
+
+    function clearCache() {
+        const box = document.getElementById('resultBox');
+        box.className = 'result-box';
+        box.innerHTML = '<span class="loading">⏳ 正在清除缓存...</span>';
+
+        fetch('/core/refresh.php?action=clear_all')
+            .then(function(res) { return res.json(); })
+            .then(function(json) {
+                box.className = 'result-box ' + (json.success ? 'success' : 'error');
+                box.textContent = JSON.stringify(json, null, 2);
+            })
+            .catch(function(e) {
+                box.className = 'result-box error';
+                box.textContent = '❌ 清除缓存失败: ' + e.message;
+            });
+    }
+
+    // 初始化
+    renderPlatforms();
+    updateUrlBar();
+    document.getElementById('limitInput').addEventListener('input', updateUrlBar);
+</script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+/* ============================================================
+   平台图标配置
+   ============================================================
+   作用：
+     集中管理所有平台的图标颜色，方便日后统一修改或新增。
+     每个平台对应一个 colorClass（在 config.php 里配置），
+     类名格式：{platform}-icon
+   修改位置：
+     改颜色直接改这里，不用动 style.css
+   ============================================================ */
+
+/* 平台图标基础尺寸（可以单独调整平台图标大小） */
+.platform-icon {
+    font-size: 20px;
+}
+
+/* ---------- 已有专用图标的平台 ---------- */
+
+.baidu-icon       { color: #2932e1; }   /* 百度 - 百度蓝 */
+.bilibili-icon    { color: #fb7299; }   /* B站 - 粉色 */
+.weibo-icon       { color: #e6162d; }   /* 微博 - 红色 */
+.zhihu-icon       { color: #0066ff; }   /* 知乎 - 蓝色 */
+.hupu-icon        { color: #d81e06; }   /* 虎扑 - 红色 */
+.douyin-icon      { color: #000000; }   /* 抖音 - 黑色 */
+.tieba-icon       { color: #ff6600; }   /* 贴吧 - 橙色 */
+.javbus-icon      { color: #ff6633; }   /* JavBus - 橙色 */
+
+/* ---------- 使用 iconfont 专用图标的平台 ---------- */
+
+.yystv-icon       { color: #00a1d6; }   /* 游研社 - 青色 */
+.toutiao-icon     { color: #ff4400; }   /* 今日头条 - 红橙色 */
+.thepaper-icon    { color: #cc0000; }   /* 澎湃新闻 - 红色 */
+.sspai-icon       { color: #d9302e; }   /* 少数派 - 红色 */
+.history-icon     { color: #8b4513; }   /* 历史上的今天 - 棕色 */
+.weread-icon      { color: #3da0f2; }   /* 微信读书 - 蓝色 */
+.v2ex-icon        { color: #22863a; }   /* V2EX - 绿色 */
+.nytimes-icon     { color: #000000; }   /* 纽约时报 - 黑色 */
+.ifanr-icon       { color: #1677ff; }   /* 爱范儿 - 蓝色 */
+.github-icon      { color: #24292e; }   /* GitHub - 深灰 */
+.hellogithub-icon { color: #24292e; }   /* HelloGitHub - 深灰 */
+.guokr-icon       { color: #00a627; }   /* 果壳网 - 绿色 */
+.huxiu-icon       { color: #ff7200; }   /* 虎嗅 - 橙色 */
+.juejin-icon      { color: #1e80ff; }   /* 掘金 - 蓝色 */
+.pojie52-icon     { color: #2a7aea; }   /* 52破解 - 蓝色 */

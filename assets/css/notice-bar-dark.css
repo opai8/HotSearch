@@ -1,0 +1,15 @@
+/* ========================================
+   通知栏 - 夜间模式样式
+   ======================================== */
+
+body[data-theme='dark'] .notice-bar {
+    background: #2d2d2d;
+}
+
+body[data-theme='dark'] .notice-content {
+    color: #b0b0b0;
+}
+
+body[data-theme='dark'] .notice-content span[style*="888"] {
+    color: #606060 !important;
+}

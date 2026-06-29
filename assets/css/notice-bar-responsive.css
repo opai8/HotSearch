@@ -1,0 +1,30 @@
+/* ========================================
+   通知栏 - 响应式样式
+   ======================================== */
+
+/* 小屏幕 */
+@media (max-width: 768px) {
+    .notice-bar {
+        margin: 12px;
+        padding: 12px;
+    }
+
+    .notice-extra .test-link {
+        padding: 5px 10px;
+        font-size: 12px;
+    }
+}
+
+/* 中等屏幕 */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .notice-bar {
+        margin: 15px 20px;
+    }
+}
+
+/* 大屏幕 */
+@media (min-width: 1400px) {
+    .notice-bar {
+        max-width: 1600px;
+    }
+}

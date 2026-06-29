@@ -1,0 +1,866 @@
+/* ============================================================
+   热搜榜首页样式表（日间模式）
+   ============================================================
+   
+   文件说明：
+   - 本文件只放日间模式的基础样式
+   - 夜间模式样式 → theme-dark.css
+   - 响应式（手机/平板）→ responsive.css
+   - 平台图标颜色 → icon-color.css
+   - 通知栏样式 → notice-bar.css / notice-bar-dark.css / notice-bar-responsive.css
+   
+   新手阅读建议：
+   - 从上往下看，每个大模块都有注释说明
+   - 看不懂的属性可以先搜一下，注释里有"新手提示"的地方重点看
+   ============================================================ */
+
+
+/* ============================================================
+   1. 全局重置（所有页面元素统一起点）
+   ============================================================ 
+   为什么要重置？因为不同浏览器对元素的默认 margin/padding 不一样，
+   重置后我们可以完全自己控制，避免浏览器差异导致的样式错乱。
+   ============================================================ */
+* {
+    margin: 0;
+    padding: 0;
+    /* 新手提示：box-sizing: border-box 表示 width/height 包含 padding 和 border，
+       这样算尺寸更直观，不用再加减 padding 了 */
+    box-sizing: border-box;
+}
+
+
+/* ============================================================
+   2. 页面主体（body 整体样式）
+   ============================================================ */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    /* 背景：淡蓝灰色渐变，从上到下由浅到稍深 */
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+    min-height: 100vh;
+    color: #222;
+}
+
+/* ---------- 全局滚动条样式（日间模式）---------- */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #b0b0b0;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
+
+
+/* ============================================================
+   3. 顶部导航栏（header）
+   ============================================================
+   结构：左侧 Logo + 标题 | 中间 时间日期 | 右侧 功能按钮
+   使用 sticky 定位，滚动时固定在顶部
+   ============================================================ */
+.header {
+    background: #fff;
+    padding: 15px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* 新手提示：position: sticky 粘在顶部，滚动时不消失 */
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid #e8e8e8;
+    box-shadow: none;
+}
+
+/* ---------- 左侧：Logo + 站点标题 ---------- */
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+/* 整个 Logo+标题 区域是一个链接，点击跳首页 */
+.header-brand-link {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+    color: inherit;
+}
+
+.header-brand-link:hover {
+    opacity: 0.85;
+}
+
+.header-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.header-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.site-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1a1a1a;
+    line-height: 1.2;
+}
+
+.site-desc {
+    font-size: 12px;
+    color: #888;
+    line-height: 1.2;
+}
+
+/* ---------- 中间：时间日期 ---------- */
+.header-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.header-time {
+    font-size: 15px;
+    font-weight: 500;
+    color: #333;
+}
+
+.header-date {
+    font-size: 12px;
+    color: #888;
+}
+
+/* ---------- 右侧：功能按钮（夜间模式/设置/测试）---------- */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-icon-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: none;
+    background: #f0f2f5;
+    color: #666;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 18px;
+    padding: 0;
+}
+
+.header-icon-btn:hover {
+    background: #e0e2e5;
+    color: #333;
+}
+
+.header-icon-btn .iconfont {
+    font-size: 18px;
+}
+
+
+/* ============================================================
+   4. 通知栏（样式已移至单独文件）
+   ============================================================
+   见：assets/css/notice-bar.css
+       assets/css/notice-bar-dark.css
+       assets/css/notice-bar-responsive.css
+   ============================================================ */
+
+
+/* ============================================================
+   5. 主内容区 + 卡片网格布局
+   ============================================================ 
+   网格布局用 CSS Grid，自动适应屏幕宽度：
+   - 桌面端：多列并排
+   - 平板端：2列
+   - 手机端：1列
+   ============================================================ */
+.main-content {
+    padding: 0 30px 30px;
+}
+
+/* 卡片网格容器 */
+.hot-grid {
+    display: grid;
+    /* 新手提示：auto-fill 自动填充，minmax(280px, 1fr) 每列最小280px，最大平分 */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    max-width: 1400px;
+    margin: 0 auto;
+    /* 新手提示：align-items: start 让每一行的卡片顶部对齐，
+       不会因为某张卡片内容多而把整行都拉高 */
+    align-items: start;
+}
+
+
+/* ============================================================
+   6. 热搜卡片（单个卡片整体结构）
+   ============================================================
+   卡片结构（从上到下）：
+     card-header  → 顶部标题栏（固定高度，不随内容变）
+     card-body    → 中间内容区（滚动容器，超出就滚动）
+     card-footer  → 底部时间+刷新（固定高度，不随内容变）
+   
+   新手提示：卡片用 flex 列布局，header 和 footer 固定高度（flex-shrink:0），
+   body 用 flex:1 占满剩余空间，这样整体高度就固定了。
+   ============================================================ */
+.hot-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    border: 1px solid #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    /* 卡片固定高度，内容超出内部滚动，不撑开页面 */
+    height: 400px;
+}
+
+/* ---------- 卡片头部（平台名称 + 标签）---------- */
+.card-header {
+    padding: 10px 16px;
+    border-bottom: 1px solid #f5f5f5;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* flex-shrink: 0 表示不被压缩，始终保持自身高度 */
+    flex-shrink: 0;
+}
+
+.card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+/* iconfont 图标基础样式 */
+span.iconfont,
+.iconfont {
+    font-size: 20px;
+    font-style: normal;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.card-tag {
+    font-size: 12px;
+    color: #666;
+    background: #f0f0f0;
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+.card-tag-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.card-source-link {
+    font-size: 11px;
+    color: #888;
+    background: #fafafa;
+    border: 1px solid #d9d9d9;
+    padding: 4px 10px;
+    border-radius: 20px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.card-source-link:hover {
+    color: #1890ff;
+    border-color: #91d5ff;
+    background: #e6f7ff;
+}
+
+/* ---------- 卡片内容区（滚动容器）---------- 
+   新手提示：
+   - card-body 是滚动容器，超出高度就出现滚动条
+   - hot-list 是数据列表，在 card-body 里面
+   - card-expand-bar 是展开条，跟在列表后面，和数据一起滚动
+   
+   为什么用 min-height: 0？
+   flex 布局子元素默认 min-height: auto，会导致内容撑开容器，
+   设置 min-height:0 后就会遵守 flex 分配的高度，超出才滚动。
+*/
+.card-body {
+    padding: 4px 0 0 0;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    min-height: 0;
+}
+
+/* 热搜列表（ul，不带滚动，跟着 card-body 一起滚） */
+.hot-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* 展开/折叠控制条（跟在数据后面，和数据一起滚动） */
+.card-expand-bar {
+    /* 这个类名只是用来 JS 查找元素的，样式由下面的 .hot-item-expand / .hot-item-footer 控制 */
+}
+
+/* ---------- 卡片内部滚动条样式（比全局细一点）---------- */
+.card-body::-webkit-scrollbar {
+    width: 4px;
+}
+
+.card-body::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 4px 0;
+}
+
+.card-body::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 2px;
+}
+
+.card-body::-webkit-scrollbar-thumb:hover {
+    background: #ccc;
+}
+
+/* Firefox 滚动条 */
+.card-body {
+    scrollbar-width: thin;
+    scrollbar-color: #ddd transparent;
+}
+
+
+/* ============================================================
+   7. 热搜列表（单条数据样式）
+   ============================================================
+   每条结构：排名数字 + 标题 + 热度值
+   ============================================================ */
+.hot-item {
+    display: flex;
+    align-items: center;
+    padding: 4px 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.hot-item:hover {
+    background: #fafafa;
+}
+
+/* ---------- 左侧：排名数字 ---------- */
+.rank {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 4px;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+/* 前三名特殊颜色（红橙黄渐变） */
+.rank.top1 {
+    background: #ff4d4f;
+    color: #fff;
+}
+
+.rank.top2 {
+    background: #ff7a45;
+    color: #fff;
+}
+
+.rank.top3 {
+    background: #ffa940;
+    color: #fff;
+}
+
+/* 第4名及以后：灰色背景 */
+.rank:not(.top1):not(.top2):not(.top3) {
+    background: #e8e8e8;
+    color: #444;
+}
+
+/* ---------- 中间：热搜标题 ---------- */
+.hot-title {
+    flex: 1;
+    font-size: 14px;
+    color: #222;
+    /* 新手提示：这三行组合实现"文字超出显示省略号"效果 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.hot-item:hover .hot-title {
+    color: #fb7299;
+    /* hover 时标题向右移动4px，增加交互感 */
+    transform: translateX(4px);
+}
+
+/* ---------- 右侧：热度值 ---------- */
+.hot-heat {
+    font-size: 12px;
+    color: #666;
+    margin-left: 10px;
+    flex-shrink: 0;
+}
+
+.hot-heat .icon-xiaohuomiao {
+    color: #ff4d4f;
+}
+
+
+/* ============================================================
+   8. 展开 / 折叠 控制条
+   ============================================================
+   有两种状态，用不同的类名区分：
+   
+   .hot-item-expand → 折叠状态（紫色背景，显示"展开全部 N 条"）
+   .hot-item-footer → 展开状态（绿色背景，显示"已展开全部，点击折叠"）
+   
+   新手提示：这两个类名是平级的，不是父子关系，
+   都是加在 .card-expand-bar 那个 div 上的，二选一。
+   ============================================================ */
+
+/* ---------- 折叠状态：紫色"展开全部"条 ---------- */
+.hot-item-expand {
+    display: flex;
+    align-items: center;
+    padding: 5px 16px;
+    background: #f0f0ff;
+    border-top: 1px solid #e8e8ff;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.15s;
+}
+
+.hot-item-expand:hover {
+    background: #e6dcff;
+}
+
+/* 左侧小图标（带箭头的紫色方块） */
+.rank-expand {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    /* 紫色渐变，和回到顶部按钮同色系 */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    border-radius: 4px;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.rank-expand .iconfont {
+    font-size: 10px;
+}
+
+/* 中间标题文字 */
+.hot-item-expand .expand-title {
+    flex: 1;
+    font-size: 12px;
+    color: #531dab;
+}
+
+/* 右侧"点击展开"小标签 */
+.hot-item-expand .expand-arrow {
+    font-size: 10px;
+    color: #722ed1;
+    background: #fff;
+    padding: 1px 6px;
+    border-radius: 8px;
+    border: 1px solid #d3adf7;
+    margin-left: 8px;
+    flex-shrink: 0;
+    font-weight: 500;
+}
+
+.hot-item-expand:hover .expand-arrow {
+    background: #f9f0ff;
+    border-color: #722ed1;
+}
+
+/* ---------- 展开状态：绿色"已展开全部"条 ---------- */
+.hot-item-footer {
+    display: flex;
+    align-items: center;
+    padding: 5px 16px;
+    background: #f6ffed;
+    border-top: 1px solid #d9f7be;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.15s;
+}
+
+.hot-item-footer:hover {
+    background: #d9f7be;
+}
+
+.hot-item-footer .footer-title {
+    flex: 1;
+    font-size: 12px;
+    color: #52c41a;
+}
+
+.hot-item-footer .footer-heat {
+    font-size: 11px;
+    color: #389e0d;
+    margin-left: 8px;
+}
+
+
+/* ============================================================
+   9. 卡片底部（更新时间 + 刷新按钮）
+   ============================================================ */
+.card-footer {
+    padding: 5px 16px;
+    border-top: 1px solid #e8e8e8;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.update-time {
+    font-size: 13px;
+    color: #666;
+}
+
+/* ---------- 刷新按钮 ---------- */
+.refresh-btn {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 14px;
+    transition: all 0.2s ease;
+    color: #666;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 刷新图标（用 ::before 伪元素 + iconfont 实现） */
+.refresh-btn::before {
+    content: '\e782';
+    font-family: 'iconfont' !important;
+    font-style: normal;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    margin-right: 4px;
+    font-size: 13px;
+    display: inline-block;
+    transition: transform 0.3s ease;
+    color: #999;
+}
+
+.refresh-btn:hover {
+    background: #f5f5f5;
+    border-color: #bbb;
+    color: #333;
+}
+
+/* hover 时图标旋转 180 度 */
+.refresh-btn:hover::before {
+    transform: rotate(180deg);
+    color: #666;
+}
+
+.refresh-btn:active {
+    background: #ebebeb;
+}
+
+/* 加载中状态（禁用 + 旋转动画） */
+.refresh-btn:disabled {
+    background: #f5f5f5;
+    color: #bbb;
+    cursor: not-allowed;
+    border-color: #e0e0e0;
+    opacity: 0.7;
+}
+
+.refresh-btn:disabled::before {
+    /* 新手提示：spin 动画在下面 @keyframes 定义，1秒一圈无限循环 */
+    animation: spin 1s linear infinite;
+    color: #bbb;
+}
+
+/* 旋转动画（刷新按钮加载中用） */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* ---------- 加载 / 错误提示 ---------- */
+.loading {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+    font-size: 14px;
+}
+
+.error {
+    text-align: center;
+    padding: 40px 20px;
+    color: #ff4d4f;
+    font-size: 14px;
+}
+
+
+/* ============================================================
+   10. 页脚
+   ============================================================ */
+.footer {
+    background: #fff;
+    padding: 16px 30px;
+    margin-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #666;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    background: #52c41a;
+    border-radius: 50%;
+    /* 呼吸灯动画，2秒一次 */
+    animation: pulse 2s infinite;
+}
+
+/* 呼吸灯动画（状态点用） */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+
+/* ============================================================
+   11. 回到顶部按钮
+   ============================================================
+   固定在右下角，滚动超过 300px 时显示
+   紫色渐变，和展开条同色系
+   ============================================================ */
+.back-to-top {
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    width: 44px;
+    height: 44px;
+    /* 紫色渐变，和展开条左侧图标同色系 */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    /* 默认隐藏，JS 滚动超过 300px 时加 .visible 显示 */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+    z-index: 999;
+}
+
+.back-to-top .iconfont {
+    font-size: 18px;
+}
+
+.back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.back-to-top:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    border-color: #667eea;
+    color: #fff;
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 6px 18px rgba(102, 126, 234, 0.6);
+}
+
+
+/* ============================================================
+   12. 平台图标颜色（已移至单独文件）
+   ============================================================
+   见：assets/css/icon-color.css
+   ============================================================ */
+
+
+/* ============================================================
+   13. Toast 提示（右上角/顶部弹出提示）
+   ============================================================
+   三种类型：
+   - toast-success（绿色左边框）→ 成功提示
+   - toast-error（红色左边框）  → 错误提示
+   - toast-info（蓝色左边框）   → 信息提示
+   
+   JS 里调用 showToast() 函数显示
+   ============================================================ */
+.toast-message {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: #fff;
+    padding: 10px 20px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    font-size: 13px;
+    color: #333;
+    z-index: 10000;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    /* 默认紫色左边框（info 风格） */
+    border-left: 4px solid #667eea;
+}
+
+.toast-message.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast-message.toast-success {
+    border-left-color: #52c41a;
+    color: #52c41a;
+}
+
+.toast-message.toast-error {
+    border-left-color: #ff4d4f;
+    color: #ff4d4f;
+}
+
+.toast-message.toast-info {
+    border-left-color: #1890ff;
+    color: #1890ff;
+}
+
+
+/* ============================================================
+   14. 自定义 Tooltip（鼠标移入显示的提示文字）
+   ============================================================
+   用法：给元素加 data-tooltip="提示文字" 属性
+   
+   显示规则：
+   - 默认：向上弹出
+   - 前3条热搜（.hot-item:nth-child(-n+3)）：向下弹出
+     （因为前3条离顶部近，向上弹会被导航栏挡住）
+   
+   新手提示：用 CSS 伪元素 ::before 实现，
+   content: attr(data-tooltip) 可以读取元素的属性值作为内容
+   ============================================================ */
+[data-tooltip] {
+    position: relative;
+    cursor: pointer;
+}
+
+[data-tooltip]::before {
+    /* 读取元素的 data-tooltip 属性值作为提示文字 */
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%) translateY(6px);
+    background: #1a1a2e;
+    color: #ffffff;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: normal;
+    word-break: break-all;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    pointer-events: none;
+    z-index: 9999;
+    max-width: 320px;
+    min-width: 80px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+[data-tooltip]:hover::before {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* 前 3 条热搜的 tooltip 向下弹出，避免被顶部导航栏遮挡 */
+.hot-item:nth-child(-n+3)[data-tooltip]::before {
+    bottom: auto;
+    top: calc(100% + 12px);
+    transform: translateX(-50%) translateY(-6px);
+}
+
+.hot-item:nth-child(-n+3)[data-tooltip]:hover::before {
+    transform: translateX(-50%) translateY(0);
+}
+
+
+/* ============================================================
+   15. 响应式设计（已移至单独文件）
+   ============================================================
+   见：assets/css/responsive.css
+   ============================================================ */
+
+/* ============================================================
+   16. 夜间模式样式（已移至单独文件）
+   ============================================================
+   见：assets/css/theme-dark.css
+   ============================================================ */

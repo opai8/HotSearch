@@ -1,0 +1,60 @@
+/* ========================================
+   通知栏 - 日间模式样式
+   ======================================== */
+
+.notice-bar {
+    background: #fff;
+    margin: 20px 30px;
+    padding: 16px 20px;
+    border-radius: 8px;
+    display: flex;
+    gap: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.notice-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.notice-content {
+    flex: 1;
+    font-size: 13px;
+    color: #444;
+    line-height: 1.6;
+}
+
+.notice-content p {
+    margin-bottom: 4px;
+}
+
+.notice-extra {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+.notice-extra .test-link {
+    display: inline-block;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 13px;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+}
+
+.notice-extra .test-link:hover {
+    opacity: 0.9;
+}
+
+.notice-content .src-list {
+    color: #666;
+    font-size: 12px;
+}
