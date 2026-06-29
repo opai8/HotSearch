@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 5169170 */
-  src: url('iconfont.woff2?t=1782679358214') format('woff2'),
-       url('iconfont.woff?t=1782679358214') format('woff'),
-       url('iconfont.ttf?t=1782679358214') format('truetype');
+  src: url('iconfont.woff2?t=1782762745374') format('woff2'),
+       url('iconfont.woff?t=1782762745374') format('woff'),
+       url('iconfont.ttf?t=1782762745374') format('truetype');
 }
 
 .iconfont {
@@ -11,6 +11,38 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-youeryuan:before {
+  content: "\e667";
+}
+
+.icon-wangyixinwen:before {
+  content: "\e9d4";
+}
+
+.icon-lol:before {
+  content: "\e697";
+}
+
+.icon-acfun:before {
+  content: "\e606";
+}
+
+.icon-anemo:before {
+  content: "\e610";
+}
+
+.icon-a-36kr:before {
+  content: "\e66f";
+}
+
+.icon-linuxdo:before {
+  content: "\e607";
+}
+
+.icon-ic-51cto:before {
+  content: "\e611";
 }
 
 .icon-dui:before {
@@ -43,10 +75,6 @@
 
 .icon-youxi:before {
   content: "\e6e3";
-}
-
-.icon-banquan:before {
-  content: "\e98b";
 }
 
 .icon-yuanxunhuan:before {

@@ -117,6 +117,11 @@ foreach ($parts as $part) {
 }
 $className .= 'HotSearch';
 
+// 如果类名以数字开头（PHP类名不允许），前面加下划线
+if (preg_match('/^\d/', $className)) {
+    $className = '_' . $className;
+}
+
 if (!class_exists($className)) {
     http_response_code(501);
     header('Content-Type: application/json; charset=utf-8');

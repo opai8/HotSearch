@@ -14,7 +14,7 @@
 
 return array(
     // 支持的平台列表 (添加新平台需要在这里注册; 小写, 与 V1/ 目录下的文件名一致)
-    'platforms' => array('baidu', 'bilibili', 'weibo', 'zhihu', 'zhihu_daily', 'hupu', 'douyin', 'tieba', 'yystv', 'toutiao', 'thepaper', 'sspai', 'history', 'weread', 'v2ex', 'nytimes', 'ifanr', 'github', 'hellogithub', 'guokr', 'huxiu', 'juejin', 'pojie52'),
+    'platforms' => array('baidu', 'bilibili', 'weibo', 'zhihu', 'zhihu_daily', 'hupu', 'douyin', 'tieba', 'yystv', 'toutiao', 'thepaper', 'sspai', 'history', 'weread', 'v2ex', 'nytimes', 'ifanr', 'github', 'hellogithub', 'guokr', 'huxiu', 'juejin', 'pojie52', '36kr', '51cto', 'wangyi', 'acfun', 'yuanshen', 'linuxdo', 'lol', 'javbus'),
 
     // 默认返回条数
     'default_limit' => 50,

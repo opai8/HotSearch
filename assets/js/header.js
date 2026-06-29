@@ -50,10 +50,10 @@
 // 刷新按钮 - 清除缓存并重新加载
 // ========================================
 (function() {
-    // 查找所有 header-icon-btn 中第一个（刷新按钮）
-    var headerBtns = document.querySelectorAll('.header-icon-btn');
-    var refreshBtn = headerBtns[0]; // 第一个是刷新按钮
-    
+    // 新手提示：用 id 查找按钮，而不是按索引，
+    // 这样即使其他按钮隐藏了，也不会找错对象
+    var refreshBtn = document.getElementById('headerRefreshBtn');
+
     if (refreshBtn) {
         refreshBtn.addEventListener('click', function() {
             // 提示正在刷新

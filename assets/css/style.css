@@ -29,6 +29,24 @@
     box-sizing: border-box;
 }
 
+/* ============================================================
+   SEO：屏幕阅读器专用样式（隐藏但可访问）
+   ============================================================
+   .sr-only 会把元素藏起来，但屏幕阅读器（盲人用的工具）还能读到。
+   用于 SEO 重要但不想显示的元素，比如页面主标题。
+   ============================================================ */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 
 /* ============================================================
    2. 页面主体（body 整体样式）
@@ -317,16 +335,37 @@ span.iconfont,
     min-height: 0;
 }
 
-/* 热搜列表（ul，不带滚动，跟着 card-body 一起滚） */
+/* 热搜列表（SEO：ol 表示有序列表，适合排名）
+   新手提示：ol 有默认的列表样式（数字），需要重置 */
 .hot-list {
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-/* 展开/折叠控制条（跟在数据后面，和数据一起滚动） */
+/* 如果想让 ol 显示序号，可以用这个（可选）：
+.hot-list {
+    counter-reset: item;
+}
+.hot-item::before {
+    counter-increment: item;
+    content: counter(item);
+} */
+
+/* 展开/折叠控制条
+   新手提示：
+   - 折叠状态（默认）：position: sticky 固定在底部，紧贴 card-footer，没有空隙
+   - 展开状态（data-expanded="1"）：position: static，跟在数据最后面，随数据滚动
+   - 为什么用 sticky 而不是 fixed？因为 sticky 是相对于滚动容器的，不脱离文档流 */
 .card-expand-bar {
-    /* 这个类名只是用来 JS 查找元素的，样式由下面的 .hot-item-expand / .hot-item-footer 控制 */
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+}
+
+/* 展开后，取消 sticky，让展开条跟数据一起滚 */
+.hot-card[data-expanded="1"] .card-expand-bar {
+    position: static;
 }
 
 /* ---------- 卡片内部滚动条样式（比全局细一点）---------- */

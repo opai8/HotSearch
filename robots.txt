@@ -1,0 +1,31 @@
+# ============================================================
+# robots.txt - 搜索引擎爬虫访问规则
+# ============================================================
+#
+# 作用：告诉搜索引擎哪些页面可以抓取，哪些不可以
+#
+# ⚠️ 上线前必改：
+#   把最后一行 Sitemap: 后面的 https://hot.cc 改成你的实际域名
+#
+# 语法说明：
+#   User-agent: *           → 允许所有爬虫
+#   Disallow: /xxx          → 禁止访问 /xxx 开头的路径
+#   Allow: /xxx             → 允许访问 /xxx（优先级高于 Disallow）
+#   Sitemap: xxx            → 告诉爬虫 sitemap 的位置
+#
+# ============================================================
+
+# 允许所有爬虫访问
+User-agent: *
+
+# 允许爬取的路径
+Allow: /
+
+# 禁止爬取的路径（后台/API/缓存等）
+Disallow: /api/
+Disallow: /cache/
+Disallow: /core/
+Disallow: /home/setting.php
+
+# 网站地图（让爬虫知道 sitemap 的位置）
+Sitemap: https://hot.cc/sitemap.xml

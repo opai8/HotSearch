@@ -1,0 +1,21 @@
+# ============================================================
+# core 目录访问保护
+# ============================================================
+# 禁止直接访问本目录下的 PHP 文件（除了 refresh.php 这个 AJAX 接口）
+# 防止敏感代码泄露或错误信息暴露
+# ============================================================
+
+# ---- 禁止目录列表 ----
+Options -Indexes
+
+# ---- 禁止访问除 refresh.php 外的所有 PHP 文件 ----
+<FilesMatch "\.(php|txt|md)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# ---- 允许 refresh.php（AJAX 刷新接口）----
+<Files "refresh.php">
+    Order Allow,Deny
+    Allow from all
+</Files>

@@ -1,0 +1,113 @@
+# ============================================================
+# Apache 配置文件
+# ============================================================
+#
+# 新手提示：
+#   - 这个文件只对 Apache 服务器有效
+#   - 如果你用的是 Nginx，请参考同目录下的 nginx.conf.example
+#   - Nginx 不支持 .htaccess，需要在 Nginx 配置文件里配置
+#
+# ============================================================
+
+# ---- 默认首页 ----
+DirectoryIndex index.php index.html
+
+# ---- 404 错误页 ----
+# 当访问不存在的页面时，显示 /404.php
+ErrorDocument 404 /404.php
+
+# ---- 开启 URL 重写 ----
+RewriteEngine On
+
+# ---- 1. 访问 /index.php 时 301 重定向到 / ----
+# 新手提示：
+#   作用：隐藏 URL 里的 index.php，让地址更干净
+#   比如访问 hot.cc/index.php 会自动跳转到 hot.cc
+#   301 是永久重定向，搜索引擎也会更新为新地址
+RewriteCond %{THE_REQUEST} /index\.php [NC]
+RewriteRule ^(.*)index\.php$ /$1 [R=301,L]
+
+# ---- 2. 访问不存在的 .php 文件时，显示 404 页面 ----
+# 新手提示：
+#   为什么需要这个？
+#   因为 Apache 对 .php 文件的处理有点特殊，
+#   文件不存在时可能不走 ErrorDocument，而是直接返回 "No input file specified"。
+#   用 RewriteRule 可以确保访问不存在的 .php 也能显示漂亮的 404 页面。
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule \.php$ /404.php [L]
+
+# ============================================================
+# 静态资源缓存
+# ============================================================
+# 新手提示：
+#   设置 CSS/JS/图片 等静态资源的缓存时间
+#   第二次访问时浏览器直接从本地缓存读取，速度提升巨大
+#
+#   expires 规则：
+#     A = 秒， 1Minute=1分钟， 1Hour=1小时， 1Day=1天， 7Days=7天
+# ============================================================
+
+# ---- 图片缓存 7 天 ----
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg "7Days"
+    ExpiresByType image/png "7Days"
+    ExpiresByType image/gif "7Days"
+    ExpiresByType image/webp "7Days"
+    ExpiresByType image/svg+xml "7Days"
+    ExpiresByType image/x-icon "7Days"
+</IfModule>
+
+# ---- CSS/JS 缓存 7 天 ----
+<IfModule mod_expires.c>
+    ExpiresByType text/css "7Days"
+    ExpiresByType application/javascript "7Days"
+    ExpiresByType text/javascript "7Days"
+</IfModule>
+
+# ---- 字体缓存 30 天（字体更新不频繁）----
+<IfModule mod_expires.c>
+    ExpiresByType font/ttf "30Days"
+    ExpiresByType font/otf "30Days"
+    ExpiresByType font/woff "30Days"
+    ExpiresByType font/woff2 "30Days"
+    ExpiresByType application/font-woff "30Days"
+    ExpiresByType application/font-woff2 "30Days"
+</IfModule>
+
+# ---- 禁止缓存 HTML（确保每次都拿到最新页面）----
+<IfModule mod_expires.c>
+    ExpiresByType text/html "0"
+    ExpiresByType application/xhtml+xml "0"
+</IfModule>
+
+# ============================================================
+# Gzip 压缩
+# ============================================================
+# 新手提示：
+#   压缩 CSS/JS/HTML 后传输，体积减少 60-80%
+#   需要 Apache 开启了 mod_deflate 模块
+# ============================================================
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE text/javascript
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE application/json
+</IfModule>
+
+# ============================================================
+# 安全相关
+# ============================================================
+
+# 禁止访问 .htaccess 文件本身
+<Files .htaccess>
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+# 禁止访问敏感文件
+<FilesMatch "^\.">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>

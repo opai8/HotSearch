@@ -256,6 +256,11 @@ function fetchFromApi($sourceId, $limit) {
     }
     $className .= 'HotSearch';
 
+    // 如果类名以数字开头（PHP类名不允许），前面加下划线
+    if (preg_match('/^\d/', $className)) {
+        $className = '_' . $className;
+    }
+
     if (!class_exists($className)) {
         return [
             'success' => false,

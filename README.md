@@ -1,6 +1,6 @@
 # 热搜榜 - 多平台实时热点聚合
 
-一个轻量级的热搜聚合站，抓取百度、微博、知乎、虎扑、抖音、贴吧、头条、澎湃、微信读书、V2EX、GitHub、掘金、少数派、果壳、虎嗅、爱范儿、HelloGitHub、52破解、纽约时报中文、游研社、B站、历史上的今天、知乎日报、JavBus 等平台的热榜数据，在一个页面上以卡片网格展示。
+一个轻量级的热搜聚合站，抓取百度、微博、知乎、虎扑、抖音、贴吧、头条、澎湃、微信读书、V2EX、GitHub、掘金、少数派、果壳、虎嗅、爱范儿、HelloGitHub、52破解、纽约时报中文、游研社、B站、历史上的今天、知乎日报、 等平台的热榜数据，在一个页面上以卡片网格展示。
 
 ---
 
@@ -9,19 +9,21 @@
 ```
 项目根目录/
 ├── index.php             ← 首页入口（渲染卡片网格）
-├── config.php            ← 全局配置（平台列表 / 缓存 TTL / API 路径）
+├── config.php            ← 全局配置（所有配置都在这里）
 ├── function.php          ← 核心功能统一入口（集中 require）
-├── .htaccess             ← Apache 安全规则（可选）
-├── nginx.htaccess        ← Nginx 伪静态参考（可选）
+├── 404.php               ← 404 错误页面
+├── .htaccess             ← Apache 配置（404 / 重写 / 缓存 / 安全）
+├── robots.txt            ← 搜索引擎爬虫规则
+├── sitemap.xml           ← 网站地图
 │
 ├── home/                 ← 页面模板组件
 │   ├── header.php        ← 页头（DOCTYPE / CSS / 顶部导航）
 │   ├── notice-bar.php    ← 通知栏（数据来源提示 / 测试页入口）
 │   ├── footer.php        ← 页脚（回到顶部 / 页脚 / JS 注入）
-│   ├── setting.php       ← 设置页面（显示/主题/缓存设置）
 │   └── test.html         ← API 接口测试页
 │
 ├── core/                 ← 核心逻辑（首页专用）
+│   ├── .htaccess         ← core 目录访问保护
 │   ├── fetcher.php       ← 数据抓取 + 文件缓存读写
 │   ├── helper.php        ← 工具函数（时间格式化 / HTML 转义）
 │   └── refresh.php       ← AJAX 刷新接口（前端刷新按钮调用）
@@ -32,27 +34,11 @@
 │   │   ├── baidu.php
 │   │   ├── weibo.php
 │   │   ├── zhihu.php
-│   │   ├── zhihu_daily.php
-│   │   ├── douyin.php
-│   │   ├── toutiao.php
-│   │   ├── thepaper.php
-│   │   ├── weread.php
-│   │   ├── v2ex.php
-│   │   ├── nytimes.php
-│   │   ├── bilibili.php
+│   │   ├── xxxxxxxxxx
 │   │   ├── hupu.php
 │   │   ├── tieba.php
-│   │   ├── yystv.php
-│   │   ├── ifanr.php
-│   │   ├── github.php
-│   │   ├── hellogithub.php
-│   │   ├── guokr.php
-│   │   ├── huxiu.php
-│   │   ├── juejin.php
-│   │   ├── pojie52.php
 │   │   ├── sspai.php
 │   │   ├── history.php
-│   │   └── javbus.php
 │   └── utils/
 │       ├── config.php    ← API 白名单（平台 id 列表）
 │       ├── error.php     ← 错误响应
@@ -66,15 +52,11 @@
 │   │   ├── icon-color.css        ← 平台图标颜色（集中管理）
 │   │   ├── notice-bar.css        ← 通知栏日间样式
 │   │   ├── notice-bar-dark.css   ← 通知栏夜间样式
-│   │   ├── notice-bar-responsive.css  ← 通知栏响应式
-│   │   ├── set.css               ← 设置页日间样式
-│   │   ├── set-dark.css          ← 设置页夜间样式
-│   │   └── set-responsive.css    ← 设置页响应式
+│   │   └── notice-bar-responsive.css  ← 通知栏响应式
 │   ├── js/
 │   │   ├── toast.js      ← Toast 轻提示（通用工具）
 │   │   ├── script.js     ← 首页交互（展开/折叠/刷新/回到顶部）
-│   │   ├── header.js     ← 头部按钮（夜间模式切换/刷新）
-│   │   └── set.js        ← 设置页交互
+│   │   └── header.js     ← 头部按钮（夜间模式切换/刷新）
 │   ├── iconfont/         ← 图标字体
 │   └── images/           ← 图片资源（favicon 等）
 │
@@ -86,9 +68,440 @@
 ## 快速开始
 
 1. 将整个项目放到 phpStudy（或其他 Apache/Nginx + PHP 环境）的站点根目录。
-2. 访问 `http://你的域名/index.php` 即可看到首页。
+2. 访问 `http://你的域名/` 即可看到首页（配置好 URL 重写后不需要加 index.php）。
 3. 访问 `http://你的域名/home/test.html` 可以逐个测试各平台的 API 返回。
-4. 点击首页右上角「⚙️ 设置」可进入设置页面。
+4. 想改配置？直接编辑根目录的 `config.php`，保存后刷新立即生效。
+
+---
+
+## 服务器配置（404 页面 / 安全 / 性能优化）
+
+### 先看这张表
+
+| 环境 | 配置文件 | 怎么配 |
+|------|---------|--------|
+| **Apache**（phpStudy 或服务器） | `.htaccess` | 放到根目录，**自动生效** |
+| **Nginx + phpStudy**（本地） | 见下方完整配置 | 手动改站点配置文件 |
+| **Nginx + 宝塔面板**（服务器） | 见下方完整配置 | 宝塔面板里改站点配置 |
+
+> **重要**：`.htaccess` 只对 Apache 生效，Nginx 完全不认。
+> Nginx 配置直接看下方的完整配置代码，复制过去改 3 处就行。
+
+---
+
+### 一、Apache 用户（最简单）
+
+什么都不用做，`.htaccess` 放到网站根目录，Apache 自动读取，里面包含：
+- 404 页面跳转
+- **隐藏 index.php**（访问 `/index.php` 自动 301 跳转到 `/`）
+- 静态资源缓存（图片 7 天、CSS/JS 7 天、字体 30 天）
+- Gzip 压缩
+- 安全规则
+
+---
+
+### 二、Nginx + phpStudy（本地开发）
+
+#### 完整配置（直接复制改 3 处就行）
+
+找到你的站点配置文件，一般在：
+```
+phpStudy安装目录/Extensions/Nginx/conf/vhosts/你的域名_80.conf
+```
+
+把下面内容**整个复制**过去，然后改 3 处标了 `⭐` 的地方：
+
+```nginx
+server {
+    listen        80;
+    # ⭐ 改成你的域名
+    server_name  hot.cc;
+    # ⭐ 改成你的网站根目录
+    root   "C:/phpstudy_pro/WWW/hot.cc";
+
+    # ---- 编码 ----
+    charset utf-8;
+
+    # ---- 404 页面 ----
+    error_page 404 /404.php;
+
+    # ---- 隐藏 index.php（必须放在 server 块下，不能放在 location / 里）----
+    # 原因：访问 /index.php 时会被 location ~ \.php$ 优先匹配，不走 location /
+    # 所以重写规则必须放在 server 级别，所有请求都能生效
+    # ⚠️ 注意：正则开头必须有 ^，只匹配根目录的 /index.php，不能匹配 /api/index.php
+    #     否则会把 /api/index.php/xxx 错误重定向，导致 API 全部失效
+    if ($request_uri ~* "^/index\.php(/?)(.*)") {
+        return 301 /$2;
+    }
+
+    # ---- 默认首页 ----
+    location / {
+        index index.php index.html;
+        autoindex  off;
+    }
+
+    # ========================================================
+    # 禁止访问敏感目录
+    # ========================================================
+    location ~* ^/cache/ {
+        deny all;
+    }
+
+    location ~* ^/core/ {
+        # refresh.php 是 AJAX 刷新接口，允许访问
+        location ~* /core/refresh\.php$ {
+            # ⭐ 改成你的 PHP-FPM 端口（phpStudy 里看）
+            fastcgi_pass   127.0.0.1:9004;
+            fastcgi_index  index.php;
+            fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+            include        fastcgi_params;
+        }
+        deny all;
+    }
+
+    location ~ /\. {
+        deny all;
+    }
+
+    # ========================================================
+    # 静态资源缓存
+    # ========================================================
+    location ~* \.(jpg|jpeg|png|gif|webp|svg|ico)$ {
+        expires 7d;
+        add_header Cache-Control "public, no-transform";
+    }
+
+    location ~* \.(css|js)$ {
+        expires 7d;
+        add_header Cache-Control "public, no-transform";
+    }
+
+    location ~* \.(ttf|otf|woff|woff2|font\.css)$ {
+        expires 30d;
+        add_header Cache-Control "public, no-transform";
+    }
+
+    # HTML 不缓存，确保每次都是最新的
+    location ~* \.html?$ {
+        expires -1;
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+    }
+
+    # ========================================================
+    # Gzip 压缩
+    # ========================================================
+    gzip on;
+    gzip_min_length 1k;
+    gzip_comp_level 6;
+    gzip_types
+        text/plain
+        text/css
+        application/json
+        application/javascript
+        text/javascript
+        text/xml
+        application/xml
+        application/xml+rss;
+    gzip_vary on;
+
+    # ========================================================
+    # PHP 处理
+    # ========================================================
+    location ~ \.php(.*)$ {
+        # 关键：先检查文件是否存在，不存在走 404
+        try_files $uri =404;
+
+        # ⭐ 改成你的 PHP-FPM 端口
+        fastcgi_pass   127.0.0.1:9004;
+        fastcgi_index  index.php;
+        fastcgi_split_path_info  ^((?U).+\.php)(/?.+)$;
+        fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+        fastcgi_param  PATH_INFO  $fastcgi_path_info;
+        fastcgi_param  PATH_TRANSLATED  $document_root$fastcgi_path_info;
+        include        fastcgi_params;
+    }
+}
+```
+
+#### 需要改的 3 处
+
+| 位置 | 改什么 | 在哪看 |
+|------|--------|--------|
+| `server_name` | 你的域名 | phpStudy 网站管理里看 |
+| `root` | 网站根目录路径 | phpStudy 网站管理里看 |
+| `fastcgi_pass` | PHP-FPM 端口 | phpStudy → 软件管理 → PHP → 设置 → 看端口 |
+
+#### 操作步骤
+
+1. 打开站点配置文件（`你的域名_80.conf`）
+2. **全选删除**原有内容
+3. 把上面的配置粘贴进去
+4. 改 3 处 `⭐` 标记的地方
+5. 保存
+6. phpStudy 里**重启 Nginx**
+
+#### 验证
+
+- 访问 `你的域名/abc.php` → 显示 404 页面 ✅（不是 "No input file specified"）
+- 访问 `你的域名/index.php` → 自动跳转到 `你的域名/` ✅（地址栏没有 index.php）
+- 访问首页 → 正常显示 ✅
+- 访问 `你的域名/api/index.php/baidu?limit=3` → 返回 JSON 数据 ✅（不是 404 页面）
+  - 如果返回 404 或 HTML，说明 PATH_INFO 没配置对，检查 PHP location 里有没有 `fastcgi_split_path_info`
+  - 如果 API 全部失败但首页正常，检查隐藏 index.php 的正则开头有没有 `^`
+
+> 💡 **快速排查测试页 JSON 解析失败**
+> 打开测试页 → 点"发起请求" → 如果显示"原始响应"，看内容是什么：
+> - 是 HTML 页面（有 `<html>` 标签） → 被重定向到 404 了，检查上面第 4 条
+> - 是 JSON 但 `success: false` → API 本身返回错误，看 `message` 字段
+
+---
+
+### 三、Nginx + 宝塔面板（服务器上线）
+
+#### 方法：在宝塔面板里改
+
+1. 登录宝塔面板
+2. 点击左侧 **网站**
+3. 找到你的站点 → 点击右侧 **设置**
+4. 点击 **配置文件** 标签
+5. 用下面的配置**替换**原来的 server 块内容
+6. 改 3 处 `⭐` 标记的地方
+7. 点击 **保存**
+
+```nginx
+server
+{
+    listen 80;
+    # ⭐ 改成你的域名
+    server_name hot.cc www.hot.cc;
+    # ⭐ 改成你的网站根目录
+    root /www/wwwroot/hot.cc;
+    index index.php index.html;
+
+    # ---- 编码 ----
+    charset utf-8;
+
+    # ---- 404 页面 ----
+    error_page 404 /404.php;
+
+    # ---- 隐藏 index.php（必须放在 server 块下，不能放在 location / 里）----
+    # 原因：访问 /index.php 时会被 location ~ \.php$ 优先匹配，不走 location /
+    # 所以重写规则必须放在 server 级别，所有请求都能生效
+    # ⚠️ 注意：正则开头必须有 ^，只匹配根目录的 /index.php，不能匹配 /api/index.php
+    #     否则会把 /api/index.php/xxx 错误重定向，导致 API 全部失效
+    if ($request_uri ~* "^/index\.php(/?)(.*)") {
+        return 301 /$2;
+    }
+
+    # ---- 默认首页 ----
+    location / {
+        index index.php index.html;
+    }
+
+    # ========================================================
+    # 禁止访问敏感目录
+    # ========================================================
+    location ~* ^/cache/ {
+        deny all;
+    }
+
+    location ~* ^/core/ {
+        location ~* /core/refresh\.php$ {
+            # ⭐ 改成你的 PHP-FPM 地址（宝塔里看，一般是 unix socket）
+            fastcgi_pass unix:/tmp/php-cgi-74.sock;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            include fastcgi_params;
+        }
+        deny all;
+    }
+
+    location ~ /\. {
+        deny all;
+    }
+
+    # ========================================================
+    # 静态资源缓存
+    # ========================================================
+    location ~* \.(jpg|jpeg|png|gif|webp|svg|ico)$ {
+        expires 7d;
+        add_header Cache-Control "public, no-transform";
+    }
+
+    location ~* \.(css|js)$ {
+        expires 7d;
+        add_header Cache-Control "public, no-transform";
+    }
+
+    location ~* \.(ttf|otf|woff|woff2|font\.css)$ {
+        expires 30d;
+        add_header Cache-Control "public, no-transform";
+    }
+
+    location ~* \.html?$ {
+        expires -1;
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+    }
+
+    # ========================================================
+    # Gzip 压缩
+    # ========================================================
+    gzip on;
+    gzip_min_length 1k;
+    gzip_comp_level 6;
+    gzip_types
+        text/plain
+        text/css
+        application/json
+        application/javascript
+        text/javascript
+        text/xml
+        application/xml
+        application/xml+rss;
+    gzip_vary on;
+
+    # ========================================================
+    # PHP 处理
+    # ========================================================
+    location ~ \.php(.*)$ {
+        # 关键：先检查文件是否存在，不存在走 404
+        try_files $uri =404;
+
+        # ⭐ 改成你的 PHP-FPM 地址
+        fastcgi_pass unix:/tmp/php-cgi-74.sock;
+        fastcgi_index index.php;
+        fastcgi_split_path_info ^((?U).+\.php)(/?.+)$;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param PATH_INFO $fastcgi_path_info;
+        fastcgi_param PATH_TRANSLATED $document_root$fastcgi_path_info;
+        include fastcgi_params;
+    }
+}
+```
+
+#### 需要改的 3 处
+
+| 位置 | 改什么 | 在哪看 |
+|------|--------|--------|
+| `server_name` | 你的域名 | 宝塔网站管理里看 |
+| `root` | 网站根目录路径 | 宝塔网站管理里看 |
+| `fastcgi_pass` | PHP-FPM 地址 | 宝塔 → 软件商店 → PHP 设置 → 看 socket 路径 |
+
+---
+
+### 四、OPcache 开启方法（PHP 代码缓存）
+
+OPcache 是 PHP 环境配置，**必须去 php.ini 或面板里开**，PHP 代码控制不了。
+
+#### phpStudy 本地环境
+
+1. 打开 phpStudy → **软件管理**
+2. 找到你用的 PHP 版本 → 点击 **设置**
+3. 找 **配置文件**（php.ini）
+4. 搜索 `opcache`
+5. 找到 `;opcache.enable=1` → 去掉前面的分号 `;`
+6. 找到 `;opcache.memory_consumption=128` → 去掉前面的分号
+7. 保存 → **重启 PHP 服务**
+
+#### 宝塔面板
+
+1. 登录宝塔 → **软件商店**
+2. 找到你用的 PHP 版本 → 点击 **设置**
+3. 点击 **配置修改** 标签
+4. 搜索 `opcache`
+5. 把 `opcache.enable` 改成 `1`
+6. 保存 → **重启 PHP**
+
+#### 验证有没有开
+
+创建一个文件 `info.php`：
+```php
+<?php phpinfo();
+```
+
+访问 `你的域名/info.php`，搜索 **OPcache**：
+- 看到 "Zend OPcache" + "Enabled: On" → 开了 ✅
+- 找不到 → 没开
+
+---
+
+### 五、性能功能开关速查
+
+| 功能 | 在哪改 | 开 | 关 |
+|------|--------|----|----|
+| **静态资源缓存** | Nginx/Apache 配置 | `expires 7d;` | `expires -1;` 或删除 |
+| **Gzip 压缩** | Nginx/Apache 配置 | `gzip on;` | `gzip off;` |
+| **OPcache** | php.ini | `opcache.enable=1` | `opcache.enable=0` |
+
+---
+
+### 六、开发阶段建议
+
+| 功能 | 开发时 | 上线后 |
+|------|--------|--------|
+| 静态资源缓存 | 关了（改了立即生效） | **必开** |
+| Gzip 压缩 | 无所谓 | **必开** |
+| OPcache | 无所谓 | **必开** |
+
+**调试技巧**：
+- 改了 CSS/JS 没变化？按 `Ctrl + F5` 强制刷新
+- Chrome 按 `F12` → **Network** → 勾选 **Disable cache**（打开 DevTools 时生效）
+
+---
+
+## 上线前必做检查清单 ⭐
+
+上线到生产环境前，务必逐项检查以下内容，避免遗漏导致 SEO 或功能问题。
+
+### 一、域名配置（3 处必须改）
+
+| 文件 | 改什么 | 说明 |
+|------|--------|------|
+| `config.php` | `seo_domain` | 改成你的实际域名，如 `'https://www.example.com'` |
+| `sitemap.xml` | 所有 `<loc>` 标签里的域名 | 把 `https://hot.cc/` 全部替换成你的实际域名 |
+| `robots.txt` | 最后一行 `Sitemap:` 后面的 URL | 把 `https://hot.cc/sitemap.xml` 改成你的域名 |
+
+> **为什么要改？**
+> - `seo_domain` 用于生成 Canonical 标签和 Open Graph 链接，告诉搜索引擎正确的网址
+> - `sitemap.xml` 里的网址必须是真实可访问的，否则搜索引擎不会收录
+> - `robots.txt` 里的 Sitemap 地址要指向真实的 sitemap 文件
+
+### 二、SEO 基础信息（建议改）
+
+打开 `config.php`，找到「第 1 部分：站点基本信息」和「第 6 部分：SEO 优化配置」：
+
+| 配置项 | 建议 |
+|--------|------|
+| `site_name` | 改成你的网站名称 |
+| `site_desc` | 改成你的网站描述（一句话说明网站是做什么的） |
+| `seo_description` | 120-150 字的详细描述，会显示在搜索引擎结果页 |
+| `seo_keywords` | 用逗号分隔的关键词，帮助搜索引擎理解网站内容 |
+
+### 三、性能优化（上线必开）
+
+| 功能 | 怎么开 | 效果 |
+|------|--------|------|
+| 静态资源缓存 | Nginx/Apache 配置里的 `expires` | 浏览器缓存 CSS/JS/图片，加载速度提升 50%+ |
+| Gzip 压缩 | Nginx/Apache 配置里的 `gzip on` | 传输体积减少 60-80% |
+| OPcache | php.ini 里 `opcache.enable=1` | PHP 执行速度提升 2-5 倍 |
+
+> 具体配置方法见上方「服务器配置」章节。
+
+### 四、安全检查
+
+- [ ] `cache/` 目录禁止直接访问（Apache 已通过 `.htaccess` 保护，Nginx 配置里也有 `deny all`）
+- [ ] `core/` 目录禁止直接访问（同上）
+- [ ] 确认无法通过 URL 直接访问 `.htaccess` 等隐藏文件
+- [ ] 网站后台（如果有）改默认账号密码
+
+### 五、功能验证
+
+上线后，用浏览器访问以下地址确认正常：
+
+- [ ] 首页 `https://你的域名/` → 正常显示
+- [ ] 访问 `https://你的域名/index.php` → 自动跳转到 `/`（地址栏没有 index.php）
+- [ ] 访问 `https://你的域名/随便输.php` → 显示 404 页面（不是 "No input file specified"）
+- [ ] `https://你的域名/robots.txt` → 能正常打开，内容正确
+- [ ] `https://你的域名/sitemap.xml` → 能正常打开，里面的网址都是你的域名
 
 ---
 
@@ -98,12 +511,12 @@
 |------|------|---------|
 | 多平台热搜聚合 | 30+ 平台，卡片网格展示 | `index.php` + `config.php` |
 | 夜间模式 | 一键切换，localStorage 记忆 | `header.js` + `theme-dark.css` |
-| 设置页面 | 显示条数 / 主题模式 / 缓存时间 | `home/setting.php` + `set.js` |
 | 文件缓存 | 带时间戳命名，6 小时有效期 | `core/fetcher.php` |
 | 单卡刷新 | 点击卡片底部「刷新」按钮 | `core/refresh.php` |
 | 展开全部 | 每卡默认 10 条，可展开查看全部 | `script.js` |
 | 通知栏 | 数据来源提示 + 测试页入口 | `home/notice-bar.php` |
 | 对外 API | 可选启用，统一 JSON 格式 | `api/index.php` |
+| 404 页面 | 美观的错误页面，支持返回首页 | `404.php` |
 
 ---
 
@@ -401,18 +814,115 @@ define('ENABLE_API_ROUTER', true);   // false 则返回 404
 
 ## 配置文件说明
 
-### config.php（根目录）
+### config.php（根目录）⭐ 新手必读
 
-首页 **唯一配置文件**。修改后立即生效。
+首页 **唯一配置文件**。所有配置都在这一个文件里，修改后立即生效，**不需要改其他任何文件**。
 
-| 变量 | 作用 | 默认 |
-|------|------|------|
-| `$GLOBALS['cache_dir']` | 缓存目录路径 | `__DIR__ . '/cache'` |
-| `$GLOBALS['cache_ttl']` | 缓存有效期（秒） | `21600`（6 小时） |
-| `$sources` | 平台显示配置数组（id/name/icon/tag/colorClass/url） | 30+ 平台 |
-| `$apiLimit` | 每个平台默认抓取条数 | `100` |
-| `$displayLimit` | 卡片默认显示条数（超出可"展开全部"） | `10` |
+文件分为 6 个部分，按顺序排列：
+
+| 部分 | 内容 | 改什么用的 |
+|------|------|------------|
+| 第 1 部分 | 站点基本信息 | 网站名称、描述、Logo、favicon |
+| 第 2 部分 | 显示配置 | 卡片高度、每行几个、默认显示条数、主题模式 |
+| 第 3 部分 | 功能开关 | 各种按钮和组件的显示/隐藏 |
+| 第 4 部分 | 缓存配置 | 缓存时间、缓存目录 |
+| 第 5 部分 | 平台列表 | 增减平台、调整顺序、改名称图标 |
+| 第 6 部分 | SEO 优化 | 网站描述、关键词、域名等 |
+| 第 7 部分 | API 基础路径 | 一般不用改 |
+
+---
+
+#### 第 1 部分：站点基本信息
+
+| 配置项 | 作用 | 默认值 |
+|--------|------|--------|
+| `site_name` | 网站名称（左上角 + 浏览器标签页） | `'今日热榜'` |
+| `site_desc` | 网站描述（标题下面的小字） | `'多平台实时热点聚合'` |
+| `site_logo` | Logo 图片路径 | `'/assets/images/favicon.png'` |
+| `site_favicon` | 浏览器标签页小图标 | `'/assets/images/favicon.png'` |
+
+#### 第 2 部分：显示配置（布局和样式）
+
+| 配置项 | 作用 | 默认值 | 可选值 / 说明 |
+|--------|------|--------|---------------|
+| `columns_per_row` | 每行显示几个卡片 | `'auto'` | `'auto'` = 自适应；`4`/`5`/`6` 等数字 = 固定数量 |
+| `card_min_width` | 卡片最小宽度（px，仅自适应模式生效） | `280` | columns_per_row = 'auto' 时才有用 |
+| `card_height` | 卡片高度（px，桌面端） | `400` | 内容超出后内部滚动 |
+| `content_max_width` | 内容区最大宽度（px） | `1400` | 页面主体区域的最大宽度 |
+| `display_limit` | 默认显示条数（折叠状态） | `10` | 每张卡片默认显示几条，超出可展开 |
+| `api_limit` | API 拉取最大条数 | `100` | 刷新时从每个平台拉多少条 |
+| `default_theme` | 默认主题模式 | `'light'` | `'light'` 日间 / `'dark'` 夜间 / `'auto'` 跟随系统 |
+
+#### 第 3 部分：功能开关
+
+`true` = 显示，`false` = 隐藏
+
+| 配置项 | 作用 | 默认值 |
+|--------|------|--------|
+| `show_header_refresh` | 顶部导航栏：是否显示"刷新全部"按钮 | `true` |
+| `show_header_setting` | 顶部导航栏：是否显示"设置"按钮 | `true` |
+| `show_notice_bar` | 是否显示顶部通知栏 | `true` |
+| `show_back_to_top` | 是否显示回到顶部按钮 | `true` |
+| `show_refresh_btn` | 是否显示卡片右下角刷新按钮 | `true` |
+| `show_heat` | 是否显示热度值（小火苗+数字） | `true` |
+| `show_source_link` | 是否显示数据来源链接（卡片右上角） | `true` |
+| `show_footer` | 是否显示页脚 | `true` |
+
+#### 第 4 部分：缓存配置
+
+| 配置项 | 作用 | 默认值 |
+|--------|------|--------|
+| `cache_dir` | 缓存目录路径 | `__DIR__ . '/cache'` |
+| `cache_ttl` | 缓存有效期（秒） | `21600`（6 小时） |
+
+常用缓存时间参考：
+- 1 小时 = `3600`
+- 3 小时 = `10800`
+- 6 小时 = `21600`
+- 12 小时 = `43200`
+- 24 小时 = `86400`
+
+#### 第 5 部分：平台列表（$sources）
+
+每个平台的字段说明：
+
+| 字段 | 说明 |
+|------|------|
+| `id` | 平台唯一标识，对应 `api/V1/` 下的文件名 |
+| `name` | 显示在卡片上的名称 |
+| `icon` | iconfont 图标类名 |
+| `tag` | 标签文字（热搜/热榜/热帖 等） |
+| `colorClass` | CSS 颜色类名，定义在 `assets/css/icon-color.css` |
+| `url` | 数据来源链接 |
+
+**常用操作：**
+- **隐藏某个平台**：在它前面加 `//` 注释掉
+- **调整顺序**：直接把数组项上下移动
+- **新增平台**：参考「添加新平台」章节
+
+#### 第 6 部分：SEO 优化配置
+
+| 配置项 | 作用 | 默认值 |
+|--------|------|--------|
+| `seo_description` | 网站描述（搜索引擎显示在标题下面） | `'聚合百度、微博、知乎...'` |
+| `seo_keywords` | 网站关键词（用逗号分隔） | `'热搜榜,微博热搜,...'` |
+| `seo_domain` | 网站域名（末尾不要加斜杠） | `'https://hot.cc'` |
+| `seo_type` | 网站类型 | `'website'`（可选 blog/news） |
+
+> SEO 优化说明：
+> - `seo_description`：建议 120-150 字，会显示在搜索引擎结果中
+> - `seo_keywords`：虽然 Google 不再用这个，但百度和其他平台可能还会参考
+> - `seo_domain`：用于生成 Canonical URL 和 Sitemap
+
+#### 第 7 部分：API 基础路径
+
+| 变量 | 作用 | 默认值 |
+|------|------|--------|
 | `$apiBaseUrl` | API 路径前缀（用于 AJAX 调用） | `/api/index.php/` |
+
+> 一般不用改。
+
+---
 
 ### api/utils/config.php（API 层）
 
@@ -429,6 +939,22 @@ return array(
 
 ---
 
+### 新手配置修改步骤
+
+1. 打开 `config.php`
+2. 找到对应部分（第 1~6 部分）
+3. 修改等号后面的值
+4. 保存文件
+5. 刷新页面，立即生效
+
+⚠️ **注意事项：**
+- 字符串值要加引号，比如 `'今日热榜'`
+- 数字值不加引号，比如 `400`
+- 布尔值是 `true` 或 `false`，不加引号
+- 数组最后一项后面可以有逗号，也可以没有，都不会报错
+
+---
+
 ## 首页结构（PHP 文件）
 
 | 文件 | 作用 | 输出 |
@@ -437,7 +963,6 @@ return array(
 | `home/header.php` | DOCTYPE / CSS / 顶部导航 / toast.js | 页面头部 HTML |
 | `home/notice-bar.php` | 通知栏（数据来源提示 / 测试页入口） | 通知栏 HTML |
 | `home/footer.php` | 回到顶部按钮 / 页脚 / JS 注入 | 页面底部 HTML |
-| `home/setting.php` | 设置页面 | 完整设置页 HTML |
 | `config.php` | 全局配置（被 function.php 引用） | 无输出 |
 | `function.php` | 统一 require（config + helper + fetcher） | 无输出 |
 | `core/fetcher.php` | 数据抓取 + 缓存读写 | 无输出 |
@@ -452,13 +977,6 @@ index.php
         ├── home/header.php  (HTML 开头 + toast.js)
         ├── home/notice-bar.php  (通知栏)
         └── home/footer.php  (HTML 结尾 + 脚本加载)
-
-home/setting.php
-  └── function.php
-        ├── home/header.php
-        ├── 专属 CSS (set.css / set-dark.css / set-responsive.css)
-        ├── set.js
-        └── home/footer.php
 
 core/refresh.php (AJAX)
   └── function.php
@@ -478,9 +996,6 @@ core/refresh.php (AJAX)
 | `notice-bar.css` | 通知栏日间样式（组件独立） |
 | `notice-bar-dark.css` | 通知栏夜间样式 |
 | `notice-bar-responsive.css` | 通知栏响应式 |
-| `set.css` | 设置页日间样式（页面独立） |
-| `set-dark.css` | 设置页夜间样式 |
-| `set-responsive.css` | 设置页响应式 |
 | `icon-color.css` | 平台图标颜色（集中管理，新增/修改平台颜色只改这里） |
 
 ### JS 组织
@@ -490,7 +1005,6 @@ core/refresh.php (AJAX)
 | `toast.js` | Toast 轻提示工具函数 | 无（最先加载） |
 | `script.js` | 首页卡片交互（展开/折叠/刷新） | `toast.js` |
 | `header.js` | 顶部按钮（夜间模式切换/刷新） | `toast.js` |
-| `set.js` | 设置页交互 | `toast.js` |
 
 ### 自定义 Tooltip
 
@@ -554,11 +1068,6 @@ A: 每个平台首次访问会触发真实 HTTP 请求，约 1-3 秒。有缓存
 A: 参考 `nginx.htaccess` 里的伪静态规则，复制到站点管理后台。
 注意：无论 Apache 还是 Nginx，**首页 `index.php` 永远不需要**
 路由规则，它本来就是默认文档。
-
-**Q: 设置页面点不进去？**
-A: 确认 `home/setting.php` 文件存在。设置按钮链接为相对路径
-`home/setting.php`（从首页点击）。如果从其他目录的页面跳转，
-需要调整路径。
 
 **Q: 夜间模式切换时页面元素大小在变化？**
 A: 日间和夜间模式的滚动条、字体大小等已经统一为相同尺寸。

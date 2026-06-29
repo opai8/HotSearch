@@ -14,7 +14,7 @@
     font-size: 20px;
 }
 
-/* ---------- 已有专用图标的平台 ---------- */
+/* ---------- 使用 iconfont 专用图标的平台 ---------- */
 
 .baidu-icon       { color: #2932e1; }   /* 百度 - 百度蓝 */
 .bilibili-icon    { color: #fb7299; }   /* B站 - 粉色 */
@@ -24,8 +24,6 @@
 .douyin-icon      { color: #000000; }   /* 抖音 - 黑色 */
 .tieba-icon       { color: #ff6600; }   /* 贴吧 - 橙色 */
 .javbus-icon      { color: #ff6633; }   /* JavBus - 橙色 */
-
-/* ---------- 使用 iconfont 专用图标的平台 ---------- */
 
 .yystv-icon       { color: #00a1d6; }   /* 游研社 - 青色 */
 .toutiao-icon     { color: #ff4400; }   /* 今日头条 - 红橙色 */
@@ -42,3 +40,10 @@
 .huxiu-icon       { color: #ff7200; }   /* 虎嗅 - 橙色 */
 .juejin-icon      { color: #1e80ff; }   /* 掘金 - 蓝色 */
 .pojie52-icon     { color: #2a7aea; }   /* 52破解 - 蓝色 */
+.kr36-icon        { color: #0077ff; }   /* 36氪 - 蓝色 */
+.cto51-icon       { color: #1890ff; }   /* 51CTO - 蓝色 */
+.wangyi-icon      { color: #e60012; }   /* 网易新闻 - 红色 */
+.acfun-icon       { color: #fd7c94; }   /* AcFun - 粉色 */
+.yuanshen-icon    { color: #00bbb4; }   /* 原神 - 青色 */
+.linuxdo-icon     { color: #000000; }   /* LinuxDo - 黑色 */
+.lol-icon         { color: #c9aa71; }   /* 英雄联盟 - 金色 */
