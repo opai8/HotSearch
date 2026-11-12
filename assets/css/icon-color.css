@@ -47,3 +47,22 @@
 .yuanshen-icon    { color: #00bbb4; }   /* 原神 - 青色 */
 .linuxdo-icon     { color: #000000; }   /* LinuxDo - 黑色 */
 .lol-icon         { color: #c9aa71; }   /* 英雄联盟 - 金色 */
+
+/* ---------- 新增平台 ---------- */
+.qq_news-icon        { color: #12b7f5; }   /* 腾讯新闻 - 腾讯蓝 */
+.sina_news-icon      { color: #ff7200; }   /* 新浪新闻 - 橙色 */
+.sina-icon           { color: #ff7200; }   /* 新浪热榜 - 橙色 */
+.kuaishou-icon       { color: #ff6600; }   /* 快手 - 橙色 */
+.ithome-icon         { color: #1e88e5; }   /* IT之家 - 蓝色 */
+.hackernews-icon     { color: #ff6600; }   /* Hacker News - 橙色 */
+.geekpark-icon       { color: #1296db; }   /* 极客公园 - 亮蓝 */
+.dgtle-icon          { color: #ff3366; }   /* 数字尾巴 - 粉红色 */
+.smzdm-icon          { color: #ff2e55; }   /* 什么值得买 - 红色 */
+.weatheralarm-icon   { color: #1890ff; }   /* 中央气象台 - 蓝色 */
+.earthquake-icon     { color: #666666; }   /* 中国地震台 - 灰色 */
+.hostloc-icon        { color: #0066cc; }   /* HostLoc - 蓝色 */
+.ngabbs-icon         { color: #ffcc00; }   /* NGA - 金色 */
+.douban_group-icon   { color: #41ac52; }   /* 豆瓣 - 豆瓣绿 */
+.jianshu-icon        { color: #ff7f50; }   /* 简书 - 珊瑚橙 */
+.csdn-icon           { color: #fc5531; }   /* CSDN - 红橙色 */
+.xiaohongshu-icon    { color: #ff2442; }   /* 小红书 - 品牌红 */

@@ -42,6 +42,12 @@ $cfg = $GLOBALS['site_config'];
                 <span class="status-dot"></span>
                 <span>服务运行正常</span>
                 <span class="gen-time" style="margin-left:12px; color:#999; font-size:12px;"><!--GEN_TIME_PLACEHOLDER--></span>
+                <span style="margin-left:auto;">
+                    <a href="/status.php" class="footer-status-link">
+                        <span class="status-dot" style="width:6px; height:6px;"></span>
+                        状态面板
+                    </a>
+                </span>
             </div>
         </div>
     </footer>

@@ -141,6 +141,11 @@ server {
         return 301 /$2;
     }
 
+    # ---- 平台详情页短 URL ----
+    # /baidu → /platform.php?source=baidu
+    # 真实文件、目录、.php 请求不受影响
+    rewrite ^/([a-z0-9_]+)$ /platform.php?source=$1 last;
+
     # ---- 默认首页 ----
     location / {
         index index.php index.html;
@@ -307,6 +312,11 @@ server
     if ($request_uri ~* "^/index\.php(/?)(.*)") {
         return 301 /$2;
     }
+
+    # ---- 平台详情页短 URL ----
+    # /baidu → /platform.php?source=baidu
+    # 真实文件、目录、.php 请求不受影响
+    rewrite ^/([a-z0-9_]+)$ /platform.php?source=$1 last;
 
     # ---- 默认首页 ----
     location / {

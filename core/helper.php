@@ -51,4 +51,17 @@ function getRelativeTime($timestamp = null) {
 function escapeHtml($text) {
     return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
 }
+
+/**
+ * 获取链接打开目标（_blank 或 _self）
+ * 从 config.php 的 link_open_new_window 读取：
+ *   '_blank' → 新窗口打开
+ *   其他任何值（'_self'、空、未设置）→ 同窗口打开
+ * @return string
+ */
+function getLinkTarget() {
+    $cfg = $GLOBALS['site_config'] ?? [];
+    $val = $cfg['link_open_new_window'] ?? '_blank';
+    return ($val === '_blank') ? '_blank' : '_self';
+}
 ?>

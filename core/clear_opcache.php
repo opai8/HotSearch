@@ -63,20 +63,24 @@ if (function_exists('opcache_get_status') && $result['reset_result']) {
     ] : null;
 }
 
-// 清理页面级静态缓存
+// 清理所有页面级静态缓存
+// page_index_*.html（首页）+ page_platform_*.html（平台详情页）
 $cacheDir = __DIR__ . '/../cache';
 if (is_dir($cacheDir)) {
-    $files = glob($cacheDir . '/page_index_*.html');
-    if ($files) {
-        $deleted = 0;
-        foreach ($files as $f) {
-            if (@unlink($f)) {
-                $deleted++;
+    $deleted = 0;
+    $patterns = array('/page_index_*.html', '/page_platform_*.html');
+    foreach ($patterns as $pattern) {
+        $files = glob($cacheDir . $pattern);
+        if ($files) {
+            foreach ($files as $f) {
+                if (@unlink($f)) {
+                    $deleted++;
+                }
             }
         }
-        $result['page_cache_cleared'] = true;
-        $result['page_cache_deleted'] = $deleted;
     }
+    $result['page_cache_cleared'] = ($deleted > 0);
+    $result['page_cache_deleted'] = $deleted;
 }
 
 echo json_encode($result, JSON_UNESCAPED_UNICODE);

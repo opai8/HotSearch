@@ -69,6 +69,43 @@ body[data-theme='dark'] .card-title {
     color: #e8e8e8;
 }
 
+/* ========================================
+   夜间模式 - 分类 Tab 栏
+   ======================================== */
+body[data-theme='dark'] .category-tab {
+    color: #b0b0b0;
+    background: #2d2d2d;
+    border-color: #404040;
+}
+body[data-theme='dark'] .category-tab:hover {
+    color: #a5b4fc;
+    border-color: #6366f1;
+    background: #252535;
+}
+body[data-theme='dark'] .category-tab.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: transparent;
+}
+body[data-theme='dark'] .category-tab-count {
+    background: #3a3a3a;
+    color: #888;
+}
+body[data-theme='dark'] .category-tab.active .category-tab-count {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.25);
+}
+body[data-theme='dark'] .category-title {
+    color: #e8e8e8;
+    border-bottom-color: #404040;
+}
+body[data-theme='dark'] .category-count {
+    background: #3a3a3a;
+    color: #a0a0a0;
+}
+body[data-theme='dark'] #cat-_other .category-title {
+    color: #909090;
+}
+
 body[data-theme='dark'] .card-tag {
     background: #3a3a3a;
     color: #a0a0a0;

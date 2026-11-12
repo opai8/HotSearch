@@ -1,158 +1,313 @@
 /**
  * 响应式设计样式
- * 基于 style.css 中的 @media 查询提取
+ * 基于 style.css 中的基础样式做媒体查询覆盖
+ * 
+ * 断点说明：
+ *   ≤ 768px  → 手机（单列，紧凑布局）
+ *   769-1024px → 平板（2列）
+ *   ≥ 1400px → 超大屏（加宽网格）
  */
+
 
 /* ========================================
    移动端适配 (max-width: 768px)
    ======================================== */
 @media (max-width: 768px) {
-    /* 顶部导航栏 */
+
+    /* ---------- 顶部导航栏 ---------- */
     .header {
-        padding: 12px 15px;
+        padding: 10px 12px;
+        gap: 8px;
     }
-    
+
+    .header-left,
+    .header-brand-link {
+        gap: 8px;
+    }
+
     .header-logo {
-        width: 36px;
-        height: 36px;
+        width: 32px;
+        height: 32px;
     }
-    
+
     .site-title {
-        font-size: 16px;
+        font-size: 15px;
     }
-    
+
     .site-desc {
-        font-size: 11px;
+        display: none;  /* 移动端隐藏副标题，省空间 */
     }
-    
+
     .header-center {
         display: none;
     }
-    
+
+    .header-right {
+        gap: 6px;
+    }
+
     .header-icon-btn {
-        width: 34px;
-        height: 34px;
+        width: 32px;
+        height: 32px;
     }
-    
-    .header-icon-btn .iconfont {
-        font-size: 16px;
-    }
-    
-    /* 通知栏（样式移至 notice-bar-responsive.css） */
-    
-    /* 主内容区 */
-    .main-content {
-        padding: 0 12px 16px;
-    }
-    
-    /* 热搜网格 - 单列 */
-    .hot-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    /* 卡片 */
-    .hot-card {
-        margin-bottom: 12px;
-        height: 500px;
-    }
-    
-    .card-header {
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-    
-    .card-title {
+
+    .header-icon-btn .iconfont,
+    .header-icon-btn span.iconfont {
         font-size: 15px;
     }
-    
+
+    /* ---------- 主内容区 ---------- */
+    .main-content {
+        padding: 0 10px 16px;
+    }
+
+    /* ---------- 分类 Tab 栏 ---------- */
+    .category-tabs {
+        padding: 0 10px;
+        margin-top: 10px;
+        gap: 6px;
+    }
+    .category-tab {
+        padding: 6px 11px;
+        font-size: 12px;
+        border-radius: 16px;
+    }
+    .category-tab-icon {
+        font-size: 13px;
+    }
+    .category-tab-count {
+        font-size: 10px;
+        padding: 0 5px;
+    }
+
+    /* ---------- 分类分组标题 ---------- */
+    .category-title {
+        font-size: 16px;
+        margin: 16px 0 10px;
+        padding-bottom: 6px;
+    }
+    .category-icon {
+        font-size: 17px;
+    }
+    .category-count {
+        font-size: 11px;
+        padding: 1px 7px;
+    }
+
+    /* ---------- 热搜网格 - 强制单列 ---------- */
+    .hot-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px;
+        max-width: 100%;
+    }
+
+    /* ---------- 卡片 ---------- */
+    .hot-card {
+        margin-bottom: 0;
+        height: 480px;
+        border-radius: 10px;
+    }
+
+    .card-header {
+        padding: 8px 12px;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .card-title {
+        font-size: 14px;
+        gap: 6px;
+    }
+
+    .card-title .iconfont,
+    .card-title span.iconfont {
+        font-size: 17px;
+    }
+
     .card-tag {
+        font-size: 10px;
+        padding: 1px 6px;
+    }
+
+    .card-source-link {
         font-size: 10px;
         padding: 2px 6px;
     }
-    
-    .card-source-link {
-        font-size: 11px;
+
+    .card-body {
+        padding: 2px 0 0 0;
     }
-    
-    /* 热搜列表 */
+
+    /* ---------- 热搜列表 ---------- */
     .hot-item {
-        padding: 10px 8px;
+        padding: 8px 12px;
     }
-    
+
     .rank {
-        width: 22px;
-        height: 22px;
+        width: 20px;
+        height: 20px;
         font-size: 11px;
         margin-right: 8px;
     }
-    
+
     .hot-title {
         font-size: 13px;
-        max-width: calc(100% - 80px);
     }
-    
+
     .hot-heat {
         font-size: 11px;
+        margin-left: 8px;
     }
-    
-    /* 卡片底部 */
+
+    /* ---------- 展开/折叠条 ---------- */
+    .hot-item-expand,
+    .hot-item-footer {
+        padding: 8px 12px;
+    }
+
+    .rank-expand {
+        width: 16px;
+        height: 16px;
+        font-size: 11px;
+        margin-right: 8px;
+    }
+
+    .expand-title,
+    .hot-item-expand .expand-title {
+        font-size: 12px;
+    }
+
+    .expand-arrow {
+        font-size: 10px;
+        padding: 1px 5px;
+    }
+
+    /* ---------- 卡片底部 ---------- */
     .card-footer {
+        padding: 6px 12px;
         flex-wrap: wrap;
-        gap: 8px;
+        gap: 6px;
     }
-    
+
     .update-time {
         font-size: 11px;
     }
-    
+
     .refresh-btn {
-        padding: 4px 10px;
+        padding: 3px 10px;
         font-size: 11px;
     }
-    
-    /* 回到顶部按钮 */
+
+    .refresh-btn::before {
+        font-size: 12px;
+        margin-right: 3px;
+    }
+
+    /* ---------- 通知栏（见 notice-bar-responsive.css）---------- */
+
+    /* ---------- 回到顶部按钮 ---------- */
     .back-to-top {
-        bottom: 20px;
-        right: 20px;
+        bottom: 18px;
+        right: 18px;
         width: 40px;
         height: 40px;
+    }
+
+    .back-to-top .iconfont,
+    .back-to-top span.iconfont {
         font-size: 16px;
     }
-    
-    /* 页脚 */
+
+    /* ---------- 页脚 ---------- */
     .footer {
         padding: 12px 15px;
         font-size: 12px;
+        margin-top: 16px;
     }
-    
-    /* 展开全部 */
-    .hot-item-expand {
-        padding: 10px 8px;
-    }
-    
-    .expand-title {
+
+    .status {
         font-size: 12px;
+        gap: 6px;
+        flex-wrap: wrap;
+        justify-content: center;
     }
-    
-    .expand-arrow {
-        font-size: 11px;
+
+    /* ---------- Toast 提示 ---------- */
+    .toast-message {
+        top: 70px;
+        font-size: 12px;
+        padding: 8px 16px;
+        max-width: 90%;
     }
 }
+
+
+/* ========================================
+   小屏手机 (max-width: 380px)
+   针对 iPhone SE 等极小屏幕进一步缩小
+   ======================================== */
+@media (max-width: 380px) {
+    .header {
+        padding: 8px 10px;
+    }
+
+    .site-title {
+        font-size: 14px;
+    }
+
+    .header-icon-btn {
+        width: 30px;
+        height: 30px;
+    }
+
+    .hot-card {
+        height: 440px;
+    }
+
+    .hot-item {
+        padding: 7px 10px;
+    }
+
+    .hot-title {
+        font-size: 12px;
+    }
+
+    .main-content {
+        padding: 0 8px 12px;
+    }
+}
+
 
 /* ========================================
    平板适配 (min-width: 769px) and (max-width: 1024px)
    ======================================== */
 @media (min-width: 769px) and (max-width: 1024px) {
-    .hot-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
     .header {
         padding: 12px 20px;
     }
-    
-    /* 通知栏（样式移至 notice-bar-responsive.css） */
+
+    .site-title {
+        font-size: 18px;
+    }
+
+    .hot-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
+
+    .hot-card {
+        height: 420px;
+    }
+
+    .card-header {
+        padding: 9px 14px;
+    }
+
+    .hot-item {
+        padding: 6px 14px;
+    }
 }
+
 
 /* ========================================
    大屏幕适配 (min-width: 1400px)
@@ -160,8 +315,5 @@
 @media (min-width: 1400px) {
     .hot-grid {
         max-width: 1600px;
-        margin: 0 auto;
     }
-    
-    /* 通知栏（样式移至 notice-bar-responsive.css） */
 }

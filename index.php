@@ -46,6 +46,8 @@ if (!empty($cfg['page_cache_enable'])) {
         $cfg['show_refresh_btn'],
         $cfg['show_notice_bar'],
         count($GLOBALS['sources']),
+        $GLOBALS['categories'],       // 分类定义（分组顺序/名称变了也要失效）
+        array_column($GLOBALS['sources'], 'category'),  // 每个平台的 category 归属
     ]));
     $cacheFile = $cfg['cache_dir'] . '/' . $cacheKey . '.html';
     $cacheTtl = isset($cfg['page_cache_ttl']) ? intval($cfg['page_cache_ttl']) : 1800;
@@ -77,6 +79,21 @@ if (!empty($cfg['page_cache_enable'])) {
 // ============================================================
 $cardsData = fetchAllSourcesData($GLOBALS['sources'], $cfg['api_limit']);
 $displayLimit = $cfg['display_limit'];  // 折叠状态显示多少条
+$categories   = $GLOBALS['categories']; // 分类定义（固定顺序 + 白名单）
+
+// ============================================================
+// 分组预处理：把卡片按 category 归类，不在白名单里的归 _other 兜底
+// 只遍历一次，渲染时按 $categories 定义的顺序输出
+// ============================================================
+$whiteList = array_filter(array_keys($categories), fn($k) => $k !== '_other');
+$groupedCards = [];
+foreach ($cardsData as $card) {
+    $cat = $card['source']['category'] ?? '';
+    if (!in_array($cat, $whiteList)) {
+        $cat = '_other';
+    }
+    $groupedCards[$cat][] = $card;
+}
 
 
 // ============================================================
@@ -182,7 +199,7 @@ function renderCardBody($data, $error, $displayLimit, $cfg) {
 
         // 拼装单条 li
         // 新手提示：data-tooltip 是自定义属性，CSS 里用 ::before 伪元素读取它来显示提示文字
-        $html .= '<li class="hot-item" onclick="openHotLink(\'' . escapeHtml($url) . '\',\'_blank\')" data-tooltip="' . escapeHtml($title) . '">'
+        $html .= '<li class="hot-item" onclick="openHotLink(\'' . escapeHtml($url) . '\')" data-tooltip="' . escapeHtml($title) . '">'
               .    '<span class="rank' . $rankClass . '">' . ($i + 1) . '</span>'
               .    '<span class="hot-title">' . escapeHtml($title) . '</span>'
               .    $hotHtml
@@ -233,6 +250,11 @@ include __DIR__ . '/home/header.php';
     }
     ?>
 
+    <?php
+    // 首页 tab 栏：$activeCat 未设置 → 「全部」高亮
+    include __DIR__ . '/home/category-tabs.php';
+    ?>
+
     <!-- ============================================================
          热搜卡片网格（主体内容）
          ============================================================
@@ -242,9 +264,22 @@ include __DIR__ . '/home/header.php';
          - 卡片结构：card-header（顶部）+ card-body（中间滚动）+ card-footer（底部）
          ============================================================ -->
     <main class="main-content" role="main">
-        <!-- SEO：每个平台用 <section> 语义化标签 -->
-        <section class="hot-grid" aria-label="热搜平台列表">
-            <?php foreach ($cardsData as $card):
+    <?php foreach ($categories as $slug => $catInfo): ?>
+    <?php if (empty($groupedCards[$slug])) continue; ?>
+    <!--
+        分类区块：按 config.php 的 $categories 固定顺序输出
+        新增平台填 category 字段会自动归到对应分组
+        category 不在白名单里的自动进 _other 兜底组
+    -->
+    <div class="category-section" id="cat-<?php echo escapeHtml($slug); ?>">
+        <!-- 分组标题（SEO：分组名用 <h2>，平台卡片用 <article>） -->
+        <h2 class="category-title">
+            <span class="category-icon"><?php echo escapeHtml($catInfo['icon']); ?></span>
+            <span><?php echo escapeHtml($catInfo['name']); ?></span>
+            <span class="category-count"><?php echo count($groupedCards[$slug]); ?></span>
+        </h2>
+        <section class="hot-grid" aria-label="<?php echo escapeHtml($catInfo['name']); ?>平台列表">
+            <?php foreach ($groupedCards[$slug] as $card):
                 $source     = $card['source'];     // 平台配置
                 $data       = $card['data'];       // 热搜数据
                 $error      = $card['error'];      // 错误信息
@@ -256,18 +291,21 @@ include __DIR__ . '/home/header.php';
             <article class="hot-card" data-source="<?php echo escapeHtml($sourceId); ?>" data-expanded="0" aria-labelledby="card-title-<?php echo escapeHtml($sourceId); ?>">
                 <!-- 卡片头部：平台图标 + 名称 | 标签 + 数据来源链接 -->
                 <header class="card-header">
-                    <!-- SEO：平台名称用 <h2> 标题标签 -->
-                    <h2 class="card-title" id="card-title-<?php echo escapeHtml($sourceId); ?>">
+                    <!-- SEO：平台名称用 <h3> 标题标签（h2 已被分组标题占用） -->
+                    <h3 class="card-title" id="card-title-<?php echo escapeHtml($sourceId); ?>">
                         <span class="iconfont <?php echo escapeHtml($source['icon']); ?> platform-icon <?php echo escapeHtml($source['colorClass']); ?>"></span>
                         <span><?php echo escapeHtml($source['name']); ?></span>
-                    </h2>
+                    </h3>
                     <div class="card-tag-wrap">
                         <span class="card-tag"><?php echo escapeHtml($source['tag']); ?></span>
                         <?php
-                        // 数据来源链接（配置开关控制显示/隐藏）
-                        if ($cfg['show_source_link'] && !empty($source['url'])):
+                        // 平台详情页链接（双轨兼容）
+                        // - Apache 用户：.htaccess rewrite 自动支持 /baidu（短URL）
+                        // - Nginx 用户：默认走 /platform.php/baidu（PATH_INFO，零配置）
+                        //   Nginx 用户也可以手动加 rewrite 获得短 URL（见 README）
+                        if ($cfg['show_source_link']):
                         ?>
-                            <a class="card-source-link" href="<?php echo escapeHtml($source['url']); ?>" target="_blank" rel="noopener">数据来源</a>
+                            <a class="card-source-link" href="/platform.php/<?php echo escapeHtml($sourceId); ?>">详情</a>
                         <?php endif; ?>
                     </div>
                 </header>
@@ -290,6 +328,8 @@ include __DIR__ . '/home/header.php';
             </article>
             <?php endforeach; ?>
         </section>
+    </div>
+    <?php endforeach; ?>
     </main>
 
 <?php

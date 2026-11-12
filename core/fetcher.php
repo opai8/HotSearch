@@ -1,18 +1,40 @@
 <?php
 /**
- * 首页数据获取模块（含文件缓存）
+ * 首页数据获取模块（含文件缓存 + 历史永久存档）
  *
- * 缓存策略：
- * - 每个平台一个 JSON 文件，保存在 /cache/ 目录
- * - 缓存有效期：6 小时（可在 config.php 中调整）
- * - 通过 force=1 参数可以跳过缓存，立即刷新
+ * 缓存策略（按日期目录永久保留）：
+ *   cache/
+ *   ├── 20261112/          ← 今天（不断被刷新覆盖）
+ *   │   ├── baidu.json     ← captured_at: 1731346800
+ *   │   ├── weibo.json
+ *   │   └── ...
+ *   ├── 20261111/          ← 昨天（0点后不再写入，永久冻结）
+ *   │   └── baidu.json
+ *   └── ...
+ *
+ * JSON 结构：
+ *   {
+ *     "captured_at": 1731346800,    ← 精确抓取时间（秒级时间戳，核心！）
+ *     "date": "2026-11-12",         ← 日期字符串（方便阅读）
+ *     "data": [...]                  ← 热榜数据
+ *   }
+ *
+ * 为什么 captured_at 很重要？
+ *   - 缓存路径改成按日期目录后，文件名不再带精确时间
+ *   - 需要 JSON 里有精确时间来判断"6小时是否过期"
+ *   - 首页/详情页显示"5 分钟前更新"也需要
+ *
+ * 历史页访问：
+ *   /weibo/2026-11-10  → 读 cache/20261110/weibo.json
+ *   不存在 → 404
  *
  * 注意：本文件从 root/config.php 读取 $GLOBALS，因此不会被直接 include。
  * 请通过 root/function.php 间接引用。
  */
 
 /**
- * 确保缓存目录存在并可写
+ * 确保缓存根目录存在并可写
+ * 同时为当天自动创建日期目录
  */
 function ensureCacheDir() {
     $cacheDir = $GLOBALS['cache_dir'];
@@ -24,56 +46,63 @@ function ensureCacheDir() {
     if (!file_exists($htaccess)) {
         @file_put_contents($htaccess, "Deny from all\n");
     }
+
+    // 自动创建今天的日期目录
+    $todayDir = $cacheDir . '/' . date('Ymd');
+    if (!is_dir($todayDir)) {
+        @mkdir($todayDir, 0755, true);
+    }
 }
 
 /**
- * 获取缓存文件路径（基于写入时的精确时间戳）
- * 写入时: baidu_20260621_194950.json
- * 读取时: 通过 glob 找到最新的匹配文件
- * @param string $sourceId 数据源 ID
- * @param int|null $timestamp 写入时的时间戳（读取时传 null 自动查找最新文件）
- * @return string
+ * 获取缓存文件路径
+ *
+ * @param string $sourceId  数据源 ID，比如 "baidu"、"zhihu_daily"
+ * @param string|null $dateDir 日期目录名 "20261112"，null = 今天
+ * @return string 文件完整路径
  */
-function getCacheFilePath($sourceId, $timestamp = null) {
-    $dir = rtrim($GLOBALS['cache_dir'], '/');
-    if ($timestamp !== null) {
-        // 写入模式：使用精确时间戳生成文件名
-        $filename = $sourceId . '_' . date('Ymd_His', $timestamp) . '.json';
-        return $dir . '/' . $filename;
+function getCacheFilePath($sourceId, $dateDir = null) {
+    if ($dateDir === null) {
+        $dateDir = date('Ymd');
     }
-    // 读取模式：glob 查找最新的匹配文件
-    $pattern = $dir . '/' . $sourceId . '_*.json';
-    $files = glob($pattern);
-    if ($files && !empty($files)) {
-        // 精确匹配：确保是 {sourceId}_YYYYMMDD_HHMMSS.json 格式，防止 zhihu 匹配到 zhihu_daily
-        $validFiles = array();
-        $prefix = $sourceId . '_';
-        foreach ($files as $f) {
-            $basename = basename($f);
-            if (strpos($basename, $prefix) === 0) {
-                $rest = substr($basename, strlen($prefix));
-                // 剩余部分应为 YYYYMMDD_HHMMSS.json 格式（15位数字+下划线+.json）
-                if (preg_match('/^\d{8}_\d{6}\.json$/', $rest)) {
-                    $validFiles[] = $f;
-                }
-            }
-        }
-        if (!empty($validFiles)) {
-            // 按修改时间倒序，取最新的
-            usort($validFiles, function($a, $b) { return filemtime($b) - filemtime($a); });
-            return $validFiles[0];
-        }
-    }
-    return $dir . '/' . $sourceId . '_' . date('Ymd_His') . '.json';
+    $dir = rtrim($GLOBALS['cache_dir'], '/') . '/' . $dateDir;
+    return $dir . '/' . $sourceId . '.json';
 }
 
 /**
- * 从缓存读取数据
+ * 从缓存读取数据（读今天的目录，用于首页）
+ *
  * @param string $sourceId 数据源 ID
- * @return array|null 返回 [ 'time' => 时间戳, 'data' => 数据 ] 或 null（缓存失效/不存在）
+ * @return array|null [ 'captured_at' => 时间戳, 'data' => [...], 'date' => '2026-11-12' ]
+ *                    或 null（缓存不存在/过期/损坏）
  */
 function readCache($sourceId) {
     $file = getCacheFilePath($sourceId);
+    return readCacheFile($file);
+}
+
+/**
+ * 从缓存读取指定日期的数据（用于历史页）
+ *
+ * @param string $sourceId 数据源 ID
+ * @param string $dateStr  日期字符串，支持多种格式：
+ *                         "2026-11-12" / "2026/11/12" / "20261112"
+ * @return array|null 同 readCache()，或 null（那天没有数据）
+ */
+function readCacheByDate($sourceId, $dateStr) {
+    // 统一转成 Ymd 格式
+    $dateDir = preg_replace('/[^0-9]/', '', $dateStr);  // 去掉所有非数字
+    if (strlen($dateDir) !== 8) {
+        return null;  // 格式不对
+    }
+    $file = getCacheFilePath($sourceId, $dateDir);
+    return readCacheFile($file);
+}
+
+/**
+ * 内部通用读取函数
+ */
+function readCacheFile($file) {
     if (!file_exists($file)) {
         return null;
     }
@@ -84,118 +113,93 @@ function readCache($sourceId) {
     }
 
     $cache = json_decode($content, true);
-    if ($cache === null || !isset($cache['time']) || !isset($cache['data'])) {
+    if ($cache === null || !isset($cache['captured_at']) || !isset($cache['data'])) {
         return null;
     }
 
-    // 检查是否过期
-    $age = time() - $cache['time'];
-    if ($age >= $GLOBALS['cache_ttl']) {
-        return null;
+    // 过期判断：用 captured_at
+    // 但注意：历史页读旧日期文件时，我们不应该判断过期！
+    // 只有读今天的文件才需要判断过期
+    $todayDir = date('Ymd');
+    $dirName = basename(dirname($file));
+    if ($dirName === $todayDir) {
+        $age = time() - intval($cache['captured_at']);
+        if ($age >= $GLOBALS['cache_ttl']) {
+            return null;  // 今天的缓存过期了，返回 null 触发重新抓取
+        }
     }
+    // 不是今天的目录 → 历史数据 → 永远不过期
 
     return $cache;
 }
 
 /**
- * 写入缓存
+ * 写入缓存（写到今天的日期目录）
  *
  * 做了三件事：
- *   1. 生成带时间戳的新缓存文件
- *   2. 用临时文件 + rename 保证原子写入（防止写到一半被读取）
- *   3. 【方案A】写入成功后，顺手删除这个平台所有的旧缓存文件，只留刚写入的这一份
+ *   1. 确保今天的日期目录存在
+ *   2. 用临时文件 + rename 保证原子写入
+ *   3. 不再删除旧文件！历史目录永久保留
+ *      （一天只有一份，刷新只是覆盖今天目录里的那一份）
  *
- * @param string $sourceId 数据源 ID，比如 "baidu"、"zhihu"
+ * @param string $sourceId 数据源 ID
  * @param array  $data     要缓存的数据数组
- * @return bool  是否写入成功
+ * @return bool 是否写入成功
  */
 function writeCache($sourceId, $data) {
     ensureCacheDir();
 
     $now = time();
     $cache = [
-        'time' => $now,
-        'data' => $data
+        'captured_at' => $now,          // 精确抓取时间（核心字段）
+        'date'        => date('Y-m-d', $now),
+        'data'        => $data
     ];
 
-    // 生成新的缓存文件名（带精确时间戳）
-    $newFile = getCacheFilePath($sourceId, $now);
+    $file = getCacheFilePath($sourceId);  // 今天的目录
     $json = json_encode($cache, JSON_UNESCAPED_UNICODE);
 
-    // 使用临时文件 + rename 保证原子写入
-    // （防止写到一半时被读取，导致拿到不完整的 JSON）
-    $tmpFile = $newFile . '.tmp';
+    // 原子写入：临时文件 + rename
+    $tmpFile = $file . '.tmp';
     if (@file_put_contents($tmpFile, $json) === false) {
         return false;
     }
 
-    if (!@rename($tmpFile, $newFile)) {
+    if (!@rename($tmpFile, $file)) {
         @unlink($tmpFile);
         return false;
-    }
-
-    // ============================================================
-    // 【方案 A】写入成功后，清理同一平台的旧缓存文件
-    // ============================================================
-    // 思路：glob 找出这个平台所有的缓存文件，删掉除了刚写入这份之外的
-    // 这样 cache 目录里每个平台永远只留最新的 1 份缓存
-    // ============================================================
-    $dir = rtrim($GLOBALS['cache_dir'], '/');
-    $pattern = $dir . '/' . $sourceId . '_*.json';
-    $allFiles = glob($pattern);
-
-    if (!empty($allFiles)) {
-        $prefix = $sourceId . '_';
-        foreach ($allFiles as $f) {
-            // 跳过刚写入的新文件
-            if ($f === $newFile) {
-                continue;
-            }
-            // 精确校验文件名格式，防止误删（比如 zhihu 不小心删了 zhihu_daily 的）
-            $basename = basename($f);
-            if (strpos($basename, $prefix) !== 0) {
-                continue;
-            }
-            $rest = substr($basename, strlen($prefix));
-            if (preg_match('/^\d{8}_\d{6}\.json$/', $rest)) {
-                @unlink($f);
-            }
-        }
     }
 
     return true;
 }
 
 /**
- * 清除某数据源的所有缓存文件（支持新旧格式）
+ * 清除某数据源的缓存（只清今天目录里的那份）
+ *
  * @param string $sourceId 数据源 ID
  * @return bool
  */
 function clearCache($sourceId) {
+    $file = getCacheFilePath($sourceId);
+    @unlink($file);
+    // 旧格式迁移：如果还有旧文件也一起清
     $dir = rtrim($GLOBALS['cache_dir'], '/');
-    $newFiles = glob($dir . '/' . $sourceId . '_*.json');
-    // 精确过滤，防止 zhihu 清除 zhihu_daily 的缓存
-    $validFiles = array();
+    $oldPattern = $dir . '/' . $sourceId . '_*.json';
     $prefix = $sourceId . '_';
-    foreach ($newFiles ?: [] as $f) {
+    foreach (glob($oldPattern) ?: [] as $f) {
         $basename = basename($f);
         if (strpos($basename, $prefix) === 0) {
-            $rest = substr($basename, strlen($prefix));
-            if (preg_match('/^\d{8}_\d{6}\.json$/', $rest)) {
-                $validFiles[] = $f;
-            }
+            @unlink($f);
         }
     }
-    $oldFile = $dir . '/' . $sourceId . '.json';
-    $allFiles = array_merge($validFiles, file_exists($oldFile) ? [$oldFile] : []);
-    foreach ($allFiles as $f) { @unlink($f); }
     return true;
 }
 
 /**
  * 获取某个数据源的缓存时间（用于显示"xx:xx 更新"）
+ *
  * @param string $sourceId 数据源 ID
- * @return int|null 时间戳或 null（缓存不存在）
+ * @return int|null 时间戳或 null
  */
 function getCacheTime($sourceId) {
     $file = getCacheFilePath($sourceId);
@@ -203,119 +207,70 @@ function getCacheTime($sourceId) {
     $content = @file_get_contents($file);
     if ($content === false) return null;
     $cache = json_decode($content, true);
-    return isset($cache['time']) ? $cache['time'] : null;
+    return isset($cache['captured_at']) ? intval($cache['captured_at']) : null;
 }
 
 /**
  * 直接调用 API 处理器获取数据（避免 HTTP 请求回环，更可靠、更快速）
- *
- * @param string $sourceId 数据源 ID
- * @param int $limit 条数
- * @return array [ 'success' => bool, 'data' => [...], 'error' => string|null ]
  */
 function fetchFromApi($sourceId, $limit) {
-    $baseDir = dirname(__DIR__);  // 项目根目录（core/ 的上一级）
+    $baseDir = dirname(__DIR__);
 
-    // 1. 加载平台白名单（api/utils/config.php）
     $configFile = $baseDir . '/api/utils/config.php';
     if (!file_exists($configFile)) {
-        return [
-            'success' => false,
-            'data' => [],
-            'error' => '配置文件不存在: api/utils/config.php'
-        ];
+        return ['success' => false, 'data' => [], 'error' => '配置文件不存在'];
     }
     $config = require $configFile;
     $platforms = isset($config['platforms']) && is_array($config['platforms']) ? $config['platforms'] : [];
 
     if (!in_array($sourceId, $platforms, true)) {
-        return [
-            'success' => false,
-            'data' => [],
-            'error' => '不支持的平台: ' . $sourceId
-        ];
+        return ['success' => false, 'data' => [], 'error' => '不支持的平台: ' . $sourceId];
     }
 
-    // 2. 加载处理器文件（api/V1/{platform}.php）
     $handlerFile = $baseDir . '/api/V1/' . $sourceId . '.php';
     if (!file_exists($handlerFile)) {
-        return [
-            'success' => false,
-            'data' => [],
-            'error' => '处理器不存在: ' . basename($handlerFile)
-        ];
+        return ['success' => false, 'data' => [], 'error' => '处理器不存在'];
     }
-
     require_once $handlerFile;
 
-    // 3. 实例化处理器类
     $className = '';
     $parts = explode('_', strtolower($sourceId));
-    foreach ($parts as $part) {
-        $className .= ucfirst($part);
-    }
+    foreach ($parts as $part) { $className .= ucfirst($part); }
     $className .= 'HotSearch';
-
-    // 如果类名以数字开头（PHP类名不允许），前面加下划线
-    if (preg_match('/^\d/', $className)) {
-        $className = '_' . $className;
-    }
+    if (preg_match('/^\d/', $className)) { $className = '_' . $className; }
 
     if (!class_exists($className)) {
-        return [
-            'success' => false,
-            'data' => [],
-            'error' => '处理器类不存在: ' . $className
-        ];
+        return ['success' => false, 'data' => [], 'error' => '处理器类不存在: ' . $className];
     }
 
-    // 4. 执行处理器获取数据
     try {
         $instance = new $className();
         $result = $instance->handle($limit);
 
         if (is_array($result) && isset($result['success']) && $result['success']) {
             $items = isset($result['data']) && is_array($result['data']) ? $result['data'] : [];
-            return [
-                'success' => true,
-                'data' => $items,
-                'error' => null
-            ];
+            return ['success' => true, 'data' => $items, 'error' => null];
         }
-
-        return [
-            'success' => false,
-            'data' => [],
-            'error' => is_array($result) && isset($result['message']) ? $result['message'] : '获取数据失败'
-        ];
+        return ['success' => false, 'data' => [], 'error' => '获取数据失败'];
     } catch (Throwable $e) {
-        return [
-            'success' => false,
-            'data' => [],
-            'error' => '执行错误: ' . $e->getMessage()
-        ];
+        return ['success' => false, 'data' => [], 'error' => '执行错误: ' . $e->getMessage()];
     }
 }
 
 /**
  * 获取单个数据源的数据（带缓存）
- *
- * @param string $sourceId 数据源 ID
- * @param int $limit 条数
- * @param bool $forceRefresh 是否强制刷新（跳过缓存）
- * @return array [ 'source' => ..., 'data' => [...], 'error' => string|null, 'time' => 时间戳 ]
  */
 function fetchApiData($sourceId, $limit = null, $forceRefresh = false) {
     if ($limit === null) {
         $limit = isset($GLOBALS['apiLimit']) ? $GLOBALS['apiLimit'] : 20;
     }
 
-    // 1. 非强制模式：尝试读取缓存
+    // 1. 非强制模式：尝试读取今天的缓存
     if (!$forceRefresh) {
         $cache = readCache($sourceId);
         if ($cache !== null) {
             return array_merge($cache['data'], [
-                'time' => $cache['time']
+                'time' => intval($cache['captured_at'])
             ]);
         }
     }
@@ -323,122 +278,77 @@ function fetchApiData($sourceId, $limit = null, $forceRefresh = false) {
     // 2. 从 API 拉取
     $result = fetchFromApi($sourceId, $limit);
 
-    // 3. 成功则写入缓存
+    // 3. 成功则写入缓存（到今天目录）
     if ($result['success']) {
         writeCache($sourceId, $result);
     }
 
-    // 4. 返回数据（带上当前时间戳）
+    // 4. 返回数据
     $result['time'] = time();
     return $result;
 }
 
 /**
  * 获取所有数据源的数据
- *
- * @param array $sources 数据源配置数组
- * @param int $limit 每个数据源的条数
- * @param bool $forceRefresh 是否强制刷新
- * @return array 所有数据源的数据
  */
 function fetchAllSourcesData($sources, $limit = 10, $forceRefresh = false) {
     $cardsData = [];
-
     foreach ($sources as $source) {
         $result = fetchApiData($source['id'], $limit, $forceRefresh);
         $cardsData[$source['id']] = [
             'source' => $source,
-            'data' => $result['data'],
-            'error' => $result['error'],
-            'time' => isset($result['time']) ? $result['time'] : time()
+            'data'   => $result['data'],
+            'error'  => $result['error'],
+            'time'   => isset($result['time']) ? $result['time'] : time()
         ];
     }
-
     return $cardsData;
 }
+
 
 // ============================================================
 // 【方案 B】全局过期缓存清理（概率触发，兜底保障）
 // ============================================================
-//
-// 为什么需要这一层？
-//   方案 A 只能清理"正在被访问的平台"的旧缓存。
-//   如果某个平台以后再也没人访问了（比如被从配置里移除了），
-//   它的缓存文件就会一直留在 cache 目录里。
-//
-// 工作原理：
-//   每次访问首页时，有 1% 的概率触发一次全量扫描，
-//   把所有超过 24 小时没更新过的缓存文件都删掉。
-//
-// 为什么用概率而不是每次都扫？
-//   全量扫描需要遍历目录里的所有文件，如果 cache 文件很多，
-//   每次都扫会影响页面加载速度。1% 的概率基本无感，
-//   但只要网站有访问量，迟早会清理干净。
+// 改动点：
+//   - 历史 JSON 永久保留，不再过期清理
+//   - 只清理：页面静态缓存 + cache/ 根目录的旧格式 JSON
+//   - 防止磁盘被垃圾文件塞满
 // ============================================================
 
 /**
- * 清理所有过期的缓存文件（全局扫描，兜底用）
+ * 清理所有过期的缓存文件
  *
- * @param int $expireSeconds 过期时间，单位秒。默认 86400 秒 = 24 小时
+ * @param int $expireSeconds 过期时间，默认 24 小时
  * @return int 清理掉的文件数量
  */
 function cleanAllExpiredCache($expireSeconds = 86400) {
     $cacheDir = rtrim($GLOBALS['cache_dir'], '/');
-
-    if (!is_dir($cacheDir)) {
-        return 0;
-    }
+    if (!is_dir($cacheDir)) return 0;
 
     $now = time();
     $count = 0;
 
-    // 清理平台数据缓存（.json）
-    $files = glob($cacheDir . '/*.json');
-    if (!empty($files)) {
-        foreach ($files as $file) {
-            if (!is_file($file)) {
-                continue;
-            }
-
-            $basename = basename($file);
-            if ($basename === '.htaccess') {
-                continue;
-            }
-
-            if (!preg_match('/^[a-z0-9_]+_\d{8}_\d{6}\.json$/', $basename)) {
-                continue;
-            }
-
-            $mtime = @filemtime($file);
-            if ($mtime === false) {
-                continue;
-            }
-
-            if ($now - $mtime >= $expireSeconds) {
-                if (@unlink($file)) {
-                    $count++;
-                }
-            }
+    // 1. 清理 cache/ 根目录的旧格式 JSON（迁移用，历史目录里的不碰）
+    foreach (glob($cacheDir . '/*.json') ?: [] as $file) {
+        if (!is_file($file)) continue;
+        $basename = basename($file);
+        if ($basename === '.htaccess') continue;
+        // 旧格式：baidu_20261112_090000.json
+        // 新格式都在子目录里，不会出现在根目录
+        if (!preg_match('/^[a-z0-9_]+_\d{8}_\d{6}\.json$/', $basename)) continue;
+        $mtime = @filemtime($file);
+        if ($mtime !== false && ($now - $mtime) >= $expireSeconds) {
+            if (@unlink($file)) $count++;
         }
     }
 
-    // 清理页面级静态缓存（page_index_*.html）
-    $pageFiles = glob($cacheDir . '/page_index_*.html');
-    if (!empty($pageFiles)) {
-        foreach ($pageFiles as $f) {
-            if (!is_file($f)) {
-                continue;
-            }
-
+    // 2. 清理页面级静态缓存
+    $pagePatterns = ['/page_index_*.html', '/page_platform_*.html'];
+    foreach ($pagePatterns as $pat) {
+        foreach (glob($cacheDir . $pat) ?: [] as $f) {
             $mtime = @filemtime($f);
-            if ($mtime === false) {
-                continue;
-            }
-
-            if ($now - $mtime >= $expireSeconds) {
-                if (@unlink($f)) {
-                    $count++;
-                }
+            if ($mtime !== false && ($now - $mtime) >= $expireSeconds) {
+                if (@unlink($f)) $count++;
             }
         }
     }
@@ -448,17 +358,8 @@ function cleanAllExpiredCache($expireSeconds = 86400) {
 
 /**
  * 概率触发全局缓存清理
- *
- * 调用方式：在页面入口（function.php）直接调用这个函数就行。
- * 它会自己判断是否要执行清理，大部分时候什么都不做，直接返回。
- *
- * @param int $percent 触发概率（百分比），默认 1%
- * @param int $expireSeconds 过期时间，默认 24 小时
- * @return int 实际清理的文件数（没触发时返回 0）
  */
 function maybeCleanExpiredCache($percent = 1, $expireSeconds = 86400) {
-    // 概率判断：生成 1~100 的随机数，如果 <= percent 就执行
-    // 比如 percent=1，就有 1% 的概率触发
     if (mt_rand(1, 100) <= $percent) {
         return cleanAllExpiredCache($expireSeconds);
     }

@@ -11,7 +11,7 @@
  */
 
 return array(
-    'platforms' => array('baidu', 'bilibili', 'weibo', 'zhihu', 'zhihu_daily', 'hupu', 'douyin', 'tieba', 'yystv', 'toutiao', 'thepaper', 'sspai', 'history', 'weread', 'v2ex', 'nytimes', 'ifanr', 'github', 'hellogithub', 'guokr', 'huxiu', 'juejin', 'pojie52', '36kr', '51cto', 'wangyi', 'acfun', 'yuanshen', 'linuxdo', 'lol', 'javbus'),
+    'platforms' => array('baidu', 'bilibili', 'weibo', 'zhihu', 'zhihu_daily', 'hupu', 'douyin', 'tieba', 'yystv', 'toutiao', 'thepaper', 'sspai', 'history', 'weread', 'v2ex', 'nytimes', 'ifanr', 'github', 'hellogithub', 'guokr', 'huxiu', 'juejin', 'pojie52', '36kr', '51cto', 'wangyi', 'acfun', 'yuanshen', 'linuxdo', 'lol', 'javbus', 'qq_news', 'sina_news', 'weatheralarm', 'smzdm', 'dgtle', 'geekpark', 'sina', 'ithome', 'hackernews', 'ngabbs', 'douban_group', 'jianshu', 'csdn', 'xiaohongshu'),
 
     'default_limit' => 50,
     'max_limit' => 100,

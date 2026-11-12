@@ -1,0 +1,220 @@
+/**
+ * 状态面板样式（日间模式）
+ * 对应页面：status.php
+ */
+
+.status-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 20px 40px;
+}
+
+/* ---------- 面包屑 + 刷新 ---------- */
+.status-breadcrumb {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.status-breadcrumb a {
+    color: #1890ff;
+    text-decoration: none;
+}
+.status-breadcrumb a:hover {
+    text-decoration: underline;
+}
+.status-refresh {
+    margin-left: auto;
+    font-size: 12px;
+    padding: 4px 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    color: #666 !important;
+    background: #fff;
+}
+.status-refresh:hover {
+    border-color: #667eea;
+    color: #667eea !important;
+}
+
+/* ---------- 汇总卡片 ---------- */
+.status-summary {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.summary-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 16px 12px;
+    text-align: center;
+    border: 1px solid #f0f0f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.summary-num {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 4px;
+}
+.summary-label {
+    font-size: 12px;
+    color: #888;
+}
+.summary-total .summary-num { color: #333; }
+.summary-ok .summary-num   { color: #52c41a; }
+.summary-warn .summary-num { color: #faad14; }
+.summary-err .summary-num  { color: #ff4d4f; }
+.summary-size .summary-num { color: #1890ff; font-size: 18px; }
+
+/* ---------- 表格 ---------- */
+.status-table-wrap {
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #f0f0f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    overflow: hidden;
+}
+.status-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+.status-table thead th {
+    background: #fafafa;
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 14px;
+    color: #555;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 12px;
+}
+.status-table tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #f5f5f5;
+    vertical-align: middle;
+}
+.status-table tbody tr:last-child td {
+    border-bottom: none;
+}
+.status-table tbody tr:hover {
+    background: #fafbfc;
+}
+.status-row.status-missing {
+    opacity: 0.6;
+}
+
+/* 平台链接 */
+.status-table a {
+    color: #1890ff;
+    text-decoration: none;
+}
+.status-table a:hover {
+    text-decoration: underline;
+}
+
+/* 时间显示 */
+.status-idx {
+    color: #bbb;
+    font-size: 12px;
+    text-align: center;
+}
+.status-age {
+    font-weight: 500;
+    color: #333;
+}
+.status-time {
+    font-size: 11px;
+    color: #aaa;
+    margin-top: 2px;
+}
+.status-empty {
+    color: #ccc;
+}
+.status-count {
+    font-variant-numeric: tabular-nums;
+    color: #444;
+}
+
+/* 状态徽章 */
+.badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+}
+.badge-ok   { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
+.badge-warn { background: #fffbe6; color: #d48806; border: 1px solid #ffe58f; }
+.badge-err  { background: #fff2f0; color: #ff4d4f; border: 1px solid #ffccc7; }
+
+/* 操作按钮 */
+.status-action {
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+    background: #fff;
+    color: #666 !important;
+    text-decoration: none !important;
+    cursor: pointer;
+}
+.status-action:hover {
+    border-color: #667eea;
+    color: #667eea !important;
+    text-decoration: none !important;
+}
+
+/* ---------- 底部 ---------- */
+.status-footer {
+    margin-top: 16px;
+    font-size: 12px;
+    color: #666;
+    line-height: 1.8;
+}
+.status-footer code {
+    background: #f5f5f5;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    color: #555;
+}
+.status-note {
+    margin-top: 4px;
+    font-size: 11px;
+    color: #888;
+}
+
+/* ---------- 移动端 ---------- */
+@media (max-width: 768px) {
+    .status-wrap { padding: 12px; }
+
+    .status-summary {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    .summary-card { padding: 12px 8px; }
+    .summary-num { font-size: 22px; }
+    .summary-size .summary-num { font-size: 15px; }
+
+    /* 移动端表格：隐藏次要列 */
+    .status-table thead th:nth-child(3),
+    .status-table thead th:nth-child(4),
+    .status-table thead th:nth-child(5),
+    .status-table thead th:nth-child(7),
+    .status-table tbody td:nth-child(3),
+    .status-table tbody td:nth-child(4),
+    .status-table tbody td:nth-child(5),
+    .status-table tbody td:nth-child(7) {
+        display: none;
+    }
+
+    .status-table thead th,
+    .status-table tbody td {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+}

@@ -1,0 +1,44 @@
+/**
+ * 平台详情页样式（夜间模式）
+ * 覆盖 platform.css 中的日间颜色
+ */
+
+[data-theme="dark"] .platform-hero,
+[data-theme="dark"] .detail-card {
+    background: #1f1f1f;
+    border-color: #303030;
+}
+
+[data-theme="dark"] .platform-hero .hero-icon {
+    background: #2a2a2a;
+}
+
+[data-theme="dark"] .platform-hero .hero-title {
+    color: #eee;
+}
+
+[data-theme="dark"] .platform-hero .hero-date {
+    background: #303030;
+    color: #aaa;
+}
+
+[data-theme="dark"] .detail-card .hot-item {
+    border-bottom-color: #2a2a2a;
+}
+
+[data-theme="dark"] .detail-card .hot-item:hover {
+    background: #252525;
+}
+
+[data-theme="dark"] .platform-hero .hero-actions a,
+[data-theme="dark"] .platform-hero .hero-actions button {
+    background: #2a2a2a;
+    border-color: #404040;
+    color: #bbb;
+}
+
+[data-theme="dark"] .platform-hero .hero-actions a:hover,
+[data-theme="dark"] .platform-hero .hero-actions button:hover {
+    border-color: #667eea;
+    color: #fff;
+}

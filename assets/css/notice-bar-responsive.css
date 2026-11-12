@@ -1,12 +1,30 @@
 /* ========================================
    通知栏 - 响应式样式
+   与主 responsive.css 的 padding 保持协调
    ======================================== */
 
-/* 小屏幕 */
+/* 小屏幕（≤ 768px） */
 @media (max-width: 768px) {
     .notice-bar {
-        margin: 12px;
-        padding: 12px;
+        margin: 12px 10px;  /* 和 main-content padding: 0 10px 协调 */
+        padding: 10px 12px;
+        border-radius: 10px;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .notice-icon {
+        font-size: 16px;
+    }
+
+    .notice-content {
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    .notice-extra {
+        width: 100%;
+        justify-content: flex-end;
     }
 
     .notice-extra .test-link {
@@ -15,14 +33,26 @@
     }
 }
 
-/* 中等屏幕 */
+/* 极小屏幕（≤ 380px） */
+@media (max-width: 380px) {
+    .notice-bar {
+        margin: 10px 8px;
+        padding: 8px 10px;
+    }
+
+    .notice-content {
+        font-size: 11px;
+    }
+}
+
+/* 中等屏幕（769-1024px 平板） */
 @media (min-width: 769px) and (max-width: 1024px) {
     .notice-bar {
         margin: 15px 20px;
     }
 }
 
-/* 大屏幕 */
+/* 大屏幕（≥ 1400px） */
 @media (min-width: 1400px) {
     .notice-bar {
         max-width: 1600px;

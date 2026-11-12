@@ -27,7 +27,39 @@ RewriteEngine On
 RewriteCond %{THE_REQUEST} /index\.php [NC]
 RewriteRule ^(.*)index\.php$ /$1 [R=301,L]
 
-# ---- 2. 访问不存在的 .php 文件时，显示 404 页面 ----
+# ---- 2. 分类页短 URL（Apache 自动生效）----
+# /category/tech → /category.php?cat=tech
+# 必须在平台详情页规则之前，否则会被 /{source} 规则误匹配
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^category/([a-z0-9_]+)$ /category.php?cat=$1 [L,QSA]
+
+# ---- 3. 平台详情页短 URL（Apache 自动生效）----
+# 顺序很重要：日期 URL（/weibo/2026-11-10）要在无日期 URL（/weibo）之前
+#
+# 2a. 历史存档 URL
+#     /weibo/2026-11-10 → /platform.php?source=weibo&date=2026-11-10
+# 2b. 今天页 URL
+#     /baidu → /platform.php?source=baidu
+#
+# ---- 2. 平台详情页短 URL（Apache 自动生效）----
+# 顺序很重要：日期 URL（/weibo/2026-11-10）要在无日期 URL（/weibo）之前
+#
+# 2a. 历史存档 URL
+#     /weibo/2026-11-10 → /platform.php?source=weibo&date=2026-11-10
+# 2b. 今天页 URL
+#     /baidu → /platform.php?source=baidu
+#
+# 真实文件、目录、.php 请求不受影响（RewriteCond 排除）
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([a-z0-9_]+)/(\d{4}-\d{2}-\d{2})$ /platform.php?source=$1&date=$2 [L,QSA]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([a-z0-9_]+)$ /platform.php?source=$1 [L,QSA]
+
+# ---- 3. 访问不存在的 .php 文件时，显示 404 页面 ----
 # 新手提示：
 #   为什么需要这个？
 #   因为 Apache 对 .php 文件的处理有点特殊，

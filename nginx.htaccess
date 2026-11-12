@@ -1,0 +1,11 @@
+# ============================================================
+# Nginx rewrite 规则（phpstudy 的 hot.cc 站点 include 此文件）
+# 修改后需要重启 Nginx 生效
+# phpstudy → 软件管理 → Nginx → 重启
+# ============================================================
+
+# 分类页：/category/tech → /category.php?cat=tech
+rewrite ^/category/([a-z0-9_]+)$ /category.php?cat=$1 last;
+
+# 平台详情页（今天）：/baidu → /platform.php?source=baidu
+rewrite ^/([a-z0-9_]+)$ /platform.php?source=$1 last;

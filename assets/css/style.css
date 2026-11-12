@@ -29,6 +29,12 @@
     box-sizing: border-box;
 }
 
+/* 双重保险：防止移动端任何元素溢出导致横向滚动条 */
+html, body {
+    overflow-x: hidden;
+    max-width: 100%;
+}
+
 /* ============================================================
    SEO：屏幕阅读器专用样式（隐藏但可访问）
    ============================================================
@@ -57,6 +63,9 @@ body {
     background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
     min-height: 100vh;
     color: #222;
+    /* 防止移动端任何元素溢出导致横向滚动条 */
+    overflow-x: hidden;
+    max-width: 100%;
 }
 
 /* ---------- 全局滚动条样式（日间模式）---------- */
@@ -207,7 +216,71 @@ body {
 
 
 /* ============================================================
-   5. 主内容区 + 卡片网格布局
+   5. 分类 Tab 栏（首页 + 分类页共用）
+   ============================================================
+   纯 <a> 链接，点击跳转 / 或 /category/{slug}
+   高亮通过 category-tab.active 控制
+   ============================================================ */
+.category-tabs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 1600px;
+    margin: 16px auto 0;
+    padding: 0 30px;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;  /* Firefox */
+}
+.category-tabs::-webkit-scrollbar {
+    display: none;  /* Chrome/Safari */
+}
+.category-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #555;
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 18px;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+.category-tab:hover {
+    color: #667eea;
+    border-color: #c0c4e8;
+    background: #f6f6ff;
+}
+.category-tab.active {
+    color: #fff;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: transparent;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.35);
+}
+.category-tab-icon {
+    font-size: 14px;
+    line-height: 1;
+}
+.category-tab-count {
+    font-size: 11px;
+    color: #aaa;
+    background: #f5f5f5;
+    padding: 1px 6px;
+    border-radius: 8px;
+    line-height: 1.4;
+}
+.category-tab.active .category-tab-count {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.25);
+}
+
+
+/* ============================================================
+   6. 主内容区 + 卡片网格布局
    ============================================================ 
    网格布局用 CSS Grid，自动适应屏幕宽度：
    - 桌面端：多列并排
@@ -216,6 +289,49 @@ body {
    ============================================================ */
 .main-content {
     padding: 0 30px 30px;
+}
+
+/* ============================================================
+   分类分组区块（资讯 / 科技 / 社区 / 视频 / 知识 / 游戏）
+   ============================================================ */
+.category-section {
+    margin-bottom: 28px;
+}
+.category-section:last-child {
+    margin-bottom: 0;
+}
+.category-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 24px 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #f0f0f0;
+    line-height: 1;
+}
+.category-section:first-child .category-title {
+    margin-top: 8px;
+}
+.category-icon {
+    font-size: 20px;
+    line-height: 1;
+}
+.category-count {
+    font-size: 12px;
+    font-weight: 500;
+    color: #888;
+    background: #f5f5f5;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: 4px;
+}
+/* _other 兜底组稍微降一点存在感 */
+#cat-_other .category-title {
+    font-weight: 500;
+    color: #666;
 }
 
 /* 卡片网格容器 */
@@ -719,6 +835,24 @@ span.iconfont,
 @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
+}
+
+/* 底部状态面板链接（小绿点 + 悬停下划线）
+   字号继承父级 .status 的 13px，与「服务运行正常」对齐 */
+.footer-status-link {
+    color: #52c41a;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.2s;
+}
+.footer-status-link:hover {
+    color: #389e0d;
+    text-decoration: underline;
+}
+.footer-status-link .status-dot {
+    animation: pulse 2s infinite;
 }
 
 

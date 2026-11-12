@@ -43,19 +43,29 @@ $weekDay = ['星期日', '星期一', '星期二', '星期三', '星期四', '�
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- 浏览器标签页标题（从配置读取） -->
-    <title><?php echo escapeHtml($cfg['site_name']); ?> - <?php echo escapeHtml($cfg['site_desc']); ?></title>
-    <!-- SEO：网站描述（搜索引擎显示在标题下面，建议 120-150 字） -->
-    <meta name="description" content="<?php echo escapeHtml($cfg['seo_description']); ?>">
-    <!-- SEO：网站关键词（用逗号分隔） -->
-    <meta name="keywords" content="<?php echo escapeHtml($cfg['seo_keywords']); ?>">
+    <?php
+    // 允许页面（如 platform.php、status.php）提前设置 SEO 变量覆盖默认值
+    $seoTitle     = isset($pageTitle)     ? $pageTitle     : ($cfg['site_name'] . ' - ' . $cfg['site_desc']);
+    $seoDesc      = isset($pageDesc)      ? $pageDesc      : $cfg['seo_description'];
+    $seoKeywords  = isset($pageKeywords)  ? $pageKeywords  : $cfg['seo_keywords'];
+    $seoRobots    = isset($pageRobots)    ? $pageRobots    : 'index, follow';
+    $seoCanonical = isset($canonical)     ? $canonical     : ($cfg['seo_domain'] . '/');
+    $seoOgType    = isset($pageOgType)    ? $pageOgType    : $cfg['seo_type'];
+    $seoOgUrl     = isset($canonical)     ? $canonical     : ($cfg['seo_domain'] . '/');
+    ?>
+    <!-- 浏览器标签页标题 -->
+    <title><?php echo escapeHtml($seoTitle); ?></title>
+    <!-- SEO：网站描述 -->
+    <meta name="description" content="<?php echo escapeHtml($seoDesc); ?>">
+    <!-- SEO：网站关键词 -->
+    <meta name="keywords" content="<?php echo escapeHtml($seoKeywords); ?>">
     <!-- SEO：作者 -->
     <meta name="author" content="<?php echo escapeHtml($cfg['site_name']); ?>">
-    <!-- SEO：生成日期 -->
-    <meta name="robots" content="index, follow">
-    <!-- SEO：Canonical 标签（规范化链接，防止重复内容） -->
-    <link rel="canonical" href="<?php echo $cfg['seo_domain']; ?>/">
-    <!-- favicon（从配置读取） -->
+    <!-- SEO：robots（运维页面如 status.php 会覆盖为 noindex, nofollow） -->
+    <meta name="robots" content="<?php echo $seoRobots; ?>">
+    <!-- SEO：Canonical 标签 -->
+    <link rel="canonical" href="<?php echo $seoCanonical; ?>">
+    <!-- favicon -->
     <link rel="icon" type="image/png" href="<?php echo escapeHtml($cfg['site_favicon']); ?>">
 
     <!-- DNS 预解析：提前解析热门平台域名，减少点击跳转时的等待 -->
@@ -73,23 +83,21 @@ $weekDay = ['星期日', '星期一', '星期二', '星期三', '星期四', '�
 
     <!-- ============================================================
          Open Graph 社交分享标签
-         用于微信/QQ/微博/Twitter 等分享时显示预览卡片
          ============================================================ -->
-    <meta property="og:type" content="<?php echo $cfg['seo_type']; ?>">
-    <meta property="og:title" content="<?php echo escapeHtml($cfg['site_name']); ?> - <?php echo escapeHtml($cfg['site_desc']); ?>">
-    <meta property="og:description" content="<?php echo escapeHtml($cfg['seo_description']); ?>">
-    <meta property="og:url" content="<?php echo $cfg['seo_domain']; ?>/">
+    <meta property="og:type" content="<?php echo $seoOgType; ?>">
+    <meta property="og:title" content="<?php echo escapeHtml($seoTitle); ?>">
+    <meta property="og:description" content="<?php echo escapeHtml($seoDesc); ?>">
+    <meta property="og:url" content="<?php echo $seoOgUrl; ?>">
     <meta property="og:site_name" content="<?php echo escapeHtml($cfg['site_name']); ?>">
     <meta property="og:image" content="<?php echo $cfg['seo_domain']; ?><?php echo escapeHtml($cfg['seo_og_image']); ?>">
     <meta property="og:locale" content="zh_CN">
 
     <!-- ============================================================
          Twitter Card 标签
-         用于 Twitter 分享时显示预览卡片
          ============================================================ -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="<?php echo escapeHtml($cfg['site_name']); ?> - <?php echo escapeHtml($cfg['site_desc']); ?>">
-    <meta name="twitter:description" content="<?php echo escapeHtml($cfg['seo_description']); ?>">
+    <meta name="twitter:title" content="<?php echo escapeHtml($seoTitle); ?>">
+    <meta name="twitter:description" content="<?php echo escapeHtml($seoDesc); ?>">
     <meta name="twitter:image" content="<?php echo $cfg['seo_domain']; ?><?php echo escapeHtml($cfg['seo_og_image']); ?>">
 
     <!-- ============================================================
@@ -165,6 +173,9 @@ $weekDay = ['星期日', '星期一', '星期二', '星期三', '星期四', '�
         if (theme === 'dark') {
             document.body.setAttribute('data-theme', 'dark');
         }
+
+        // 热搜链接打开方式（从 config 读取）
+        var LINK_TARGET = '<?php echo getLinkTarget(); ?>';
     </script>
 </head>
 <body>

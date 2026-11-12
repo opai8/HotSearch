@@ -10,7 +10,8 @@
  *   3. 第 3 部分「功能开关」，控制各种按钮和组件显示隐藏
  *   4. 第 4 部分「缓存配置」，改缓存时间在这里
  *   5. 第 5 部分「SEO 优化」，改网站描述/关键词/域名在这里
- *   6. 第 6 部分「平台列表」，增减/排序平台在这里
+ *   6. 第 6 部分「分类定义」，新增分类或调整分类顺序在这里
+ *   7. 第 7 部分「平台列表」，增减/排序平台/指定分类在这里
  *
  * 修改方法：直接改下面的变量值，保存后刷新页面立即生效。
  * ============================================================
@@ -65,6 +66,8 @@ $site_config = [
     'show_heat'           => true,   // 热度值（小火苗+数字）
     'show_source_link'    => true,   // 数据来源链接（卡片右上角）
     'show_footer'         => true,   // 页脚
+    // 热搜链接打开方式：写 '_blank' 新窗口打开，写 '_self' 或不写就同窗口打开
+    'link_open_new_window'=> '_blank',
 
 
     // ========================================================
@@ -93,15 +96,40 @@ $site_config = [
 
 
 // ============================================================
+// 分类定义（首页分组顺序由这里的顺序决定）
+// ============================================================
+// 新增分类：在这里加一行，然后在对应平台的 category 字段填这个 slug
+// 修改顺序：直接调整数组项顺序，首页分组跟着变
+// 删除分类：直接注释掉（如果有平台还在这个分类会进"其他"兜底组）
+//
+// slug 命名规则：全小写英文，只用字母
+// name ：显示在首页分组标题的中文名
+// icon ：分组标题前的 emoji 小图标
+// ============================================================
+$categories = [
+    'news'      => ['name' => '资讯',     'icon' => '📰'],
+    'tech'      => ['name' => '科技',     'icon' => '💻'],
+    'community' => ['name' => '社区',     'icon' => '💬'],
+    'video'     => ['name' => '视频',     'icon' => '🎬'],
+    'knowledge' => ['name' => '知识',     'icon' => '📚'],
+    'game'      => ['name' => '游戏',     'icon' => '🎮'],
+    // 兜底分类：不在以上白名单里的平台自动归到这里
+    '_other'    => ['name' => '其他',     'icon' => '📦'],
+];
+
+
+// ============================================================
 // 热搜平台配置列表
 // ============================================================
-// 增减平台、调整顺序、改名称/图标在这里
+// 增减平台、调整顺序、改名称/图标/分类在这里
 //
 // 每个平台的字段说明：
 //   - id         : 平台唯一标识，对应 api/V1/ 下的文件名
 //   - name       : 显示在卡片上的名称
 //   - icon       : iconfont 图标类名
 //   - tag        : 标签文字（热搜/热榜/热帖 等）
+//   - category   : 分类 slug，对应上面 $categories 的 key
+//                  填错或没填会自动进"其他"兜底组
 //   - colorClass : CSS 颜色类名，定义在 assets/css/icon-color.css
 //   - url        : 数据来源链接（卡片上的"数据来源"按钮）
 //
@@ -115,6 +143,7 @@ $sources = [
         'name' => '百度热搜',
         'icon' => 'iconfont icon-baidu',
         'tag' => '热搜',
+        'category' => 'news',
         'colorClass' => 'baidu-icon',
         'url'  => 'https://top.baidu.com/board?tab=realtime'
     ],
@@ -123,6 +152,7 @@ $sources = [
         'name' => 'B站热搜',
         'icon' => 'iconfont icon-bilibili',
         'tag' => '热搜',
+        'category' => 'video',
         'colorClass' => 'bilibili-icon',
         'url'  => 'https://www.bilibili.com/v/popular/rank/all'
     ],
@@ -131,6 +161,7 @@ $sources = [
         'name' => '微博热搜',
         'icon' => 'iconfont icon-weibo',
         'tag' => '热搜',
+        'category' => 'news',
         'colorClass' => 'weibo-icon',
         'url'  => 'https://s.weibo.com/top/summary'
     ],
@@ -139,6 +170,7 @@ $sources = [
         'name' => '知乎热榜',
         'icon' => 'iconfont icon-zhihu',
         'tag' => '热榜',
+        'category' => 'news',
         'colorClass' => 'zhihu-icon',
         'url'  => 'https://www.zhihu.com/hot'
     ],
@@ -147,6 +179,7 @@ $sources = [
         'name' => '虎扑步行街',
         'icon' => 'iconfont icon-hupu',
         'tag' => '热帖',
+        'category' => 'community',
         'colorClass' => 'hupu-icon',
         'url'  => 'https://bbs.hupu.com/all-gambia'
     ],
@@ -155,6 +188,7 @@ $sources = [
         'name' => '抖音热搜',
         'icon' => 'iconfont icon-douyin',
         'tag' => '热榜',
+        'category' => 'video',
         'colorClass' => 'douyin-icon',
         'url'  => 'https://www.douyin.com/hot'
     ],
@@ -163,6 +197,7 @@ $sources = [
         'name' => '百度贴吧',
         'icon' => 'iconfont icon-tieba',
         'tag' => '热议',
+        'category' => 'community',
         'colorClass' => 'tieba-icon',
         'url'  => 'https://tieba.baidu.com/hottopic/browse/topicList'
     ],
@@ -172,6 +207,7 @@ $sources = [
         'name' => '老司机',
         'icon' => 'iconfont icon-youeryuan',
         'tag' => '热门',
+        'category' => '_other',
         'colorClass' => 'javbus-icon',
         'url'  => 'https://www.dmmsee.ink/forum/',
     ],
@@ -181,6 +217,7 @@ $sources = [
         'name' => '游研社',
         'icon' => 'iconfont icon-youxi',
         'tag' => '热文',
+        'category' => 'game',
         'colorClass' => 'yystv-icon',
         'url'  => 'https://www.yystv.cn/'
     ],
@@ -189,6 +226,7 @@ $sources = [
         'name' => '今日头条',
         'icon' => 'iconfont icon-jinritoutiao',
         'tag' => '热榜',
+        'category' => 'news',
         'colorClass' => 'toutiao-icon',
         'url'  => 'https://www.toutiao.com/'
     ],
@@ -197,6 +235,7 @@ $sources = [
         'name' => '澎湃新闻',
         'icon' => 'iconfont icon-pengpaixinwen',
         'tag' => '热点',
+        'category' => 'news',
         'colorClass' => 'thepaper-icon',
         'url'  => 'https://www.thepaper.cn/'
     ],
@@ -205,6 +244,7 @@ $sources = [
         'name' => '少数派',
         'icon' => 'iconfont icon-sspai',
         'tag' => '热门',
+        'category' => 'tech',
         'colorClass' => 'sspai-icon',
         'url'  => 'https://sspai.com/'
     ],
@@ -213,6 +253,7 @@ $sources = [
         'name' => '历史上的今天',
         'icon' => 'iconfont icon-lishijintian',
         'tag' => '历史',
+        'category' => 'knowledge',
         'colorClass' => 'history-icon',
         'url'  => 'https://baike.baidu.com/'
     ],
@@ -221,6 +262,7 @@ $sources = [
         'name' => '知乎日报',
         'icon' => 'iconfont icon-zhihudaily',
         'tag' => '日报',
+        'category' => 'news',
         'colorClass' => 'zhihu-icon',
         'url'  => 'https://daily.zhihu.com/'
     ],
@@ -229,6 +271,7 @@ $sources = [
         'name' => '微信读书',
         'icon' => 'iconfont icon-weixindushuchaotuoyuan',
         'tag' => '热搜',
+        'category' => 'knowledge',
         'colorClass' => 'weread-icon',
         'url'  => 'https://weread.qq.com/'
     ],
@@ -238,6 +281,7 @@ $sources = [
         'name' => 'V2EX',
         'icon' => 'iconfont icon-vex',
         'tag' => '最热',
+        'category' => 'community',
         'colorClass' => 'v2ex-icon',
         'url'  => 'https://www.v2ex.com/'
     ],
@@ -246,6 +290,7 @@ $sources = [
         'name' => '纽约时报中文',
         'icon' => 'iconfont icon-niuyueshibao',
         'tag' => '头条',
+        'category' => 'news',
         'colorClass' => 'nytimes-icon',
         'url'  => 'https://cn.nytimes.com/'
     ],
@@ -254,6 +299,7 @@ $sources = [
         'name' => 'LinuxDo',
         'icon' => 'iconfont icon-linuxdo',
         'tag' => '热门',
+        'category' => 'tech',
         'colorClass' => 'linuxdo-icon',
         'url'  => 'https://linux.do/'
     ],
@@ -263,6 +309,7 @@ $sources = [
         'name' => '爱范儿',
         'icon' => 'iconfont icon-ifanr',
         'tag' => '热文',
+        'category' => 'tech',
         'colorClass' => 'ifanr-icon',
         'url'  => 'https://www.ifanr.com/'
     ],
@@ -271,6 +318,7 @@ $sources = [
         'name' => 'GitHub',
         'icon' => 'iconfont icon-GitHub',
         'tag' => 'Trending',
+        'category' => 'tech',
         'colorClass' => 'github-icon',
         'url'  => 'https://github.com/trending'
     ],
@@ -279,6 +327,7 @@ $sources = [
         'name' => 'HelloGitHub',
         'icon' => 'iconfont icon-github',
         'tag' => '热门',
+        'category' => 'tech',
         'colorClass' => 'hellogithub-icon',
         'url'  => 'https://hellogithub.com/'
     ],
@@ -287,6 +336,7 @@ $sources = [
         'name' => '果壳网',
         'icon' => 'iconfont icon-guokewang',
         'tag' => '热文',
+        'category' => 'knowledge',
         'colorClass' => 'guokr-icon',
         'url'  => 'https://www.guokr.com/'
     ],
@@ -295,6 +345,7 @@ $sources = [
         'name' => '虎嗅',
         'icon' => 'iconfont icon-huxiu',
         'tag' => '热文',
+        'category' => 'tech',
         'colorClass' => 'huxiu-icon',
         'url'  => 'https://www.huxiu.com/'
     ],
@@ -303,6 +354,7 @@ $sources = [
         'name' => '36氪',
         'icon' => 'iconfont icon-a-36kr',
         'tag' => '热榜',
+        'category' => 'tech',
         'colorClass' => 'kr36-icon',
         'url'  => 'https://36kr.com/'
     ],
@@ -311,6 +363,7 @@ $sources = [
         'name' => '掘金',
         'icon' => 'iconfont icon-juejin',
         'tag' => '热榜',
+        'category' => 'tech',
         'colorClass' => 'juejin-icon',
         'url'  => 'https://juejin.cn/'
     ],
@@ -319,6 +372,7 @@ $sources = [
         'name' => '52破解',
         'icon' => 'iconfont icon-52pojie',
         'tag' => '热门',
+        'category' => 'tech',
         'colorClass' => 'pojie52-icon',
         'url'  => 'https://www.52pojie.cn/'
     ],
@@ -327,6 +381,7 @@ $sources = [
         'name' => '51CTO',
         'icon' => 'iconfont icon-ic-51cto',
         'tag' => '推荐',
+        'category' => 'tech',
         'colorClass' => 'cto51-icon',
         'url'  => 'https://www.51cto.com/'
     ],
@@ -335,6 +390,7 @@ $sources = [
         'name' => '网易新闻',
         'icon' => 'iconfont icon-wangyixinwen',
         'tag' => '热榜',
+        'category' => 'news',
         'colorClass' => 'wangyi-icon',
         'url'  => 'https://news.163.com/'
     ],
@@ -343,6 +399,7 @@ $sources = [
         'name' => 'AcFun',
         'icon' => 'iconfont icon-acfun',
         'tag' => '综合榜',
+        'category' => 'video',
         'colorClass' => 'acfun-icon',
         'url'  => 'https://www.acfun.cn/'
     ],
@@ -351,6 +408,7 @@ $sources = [
         'name' => '原神',
         'icon' => 'iconfont icon-anemo',
         'tag' => '公告',
+        'category' => 'game',
         'colorClass' => 'yuanshen-icon',
         'url'  => 'https://www.miyoushe.com/ys/'
     ],
@@ -359,8 +417,137 @@ $sources = [
         'name' => '英雄联盟',
         'icon' => 'iconfont icon-lol',
         'tag' => '综合',
+        'category' => 'game',
         'colorClass' => 'lol-icon',
         'url'  => 'https://lol.qq.com/news/index.shtml'
+    ],
+
+    // ---- 新增平台 ----
+    [
+        'id' => 'qq_news',
+        'name' => '腾讯新闻',
+        'icon' => 'iconfont icon-xinwen',
+        'tag' => '热点榜',
+        'category' => 'news',
+        'colorClass' => 'qq_news-icon',
+        'url'  => 'https://news.qq.com/'
+    ],
+    [
+        'id' => 'sina_news',
+        'name' => '新浪新闻',
+        'icon' => 'iconfont icon-xinwen',
+        'tag' => '热点榜',
+        'category' => 'news',
+        'colorClass' => 'sina_news-icon',
+        'url'  => 'https://news.sina.com.cn/'
+    ],
+    [
+        'id' => 'sina',
+        'name' => '新浪热榜',
+        'icon' => 'iconfont icon-xinwen',
+        'tag' => '综合热榜',
+        'category' => 'news',
+        'colorClass' => 'sina-icon',
+        'url'  => 'https://news.sina.com.cn/hotnews/'
+    ],
+    [
+        'id' => 'ithome',
+        'name' => 'IT之家',
+        'icon' => 'iconfont icon-itzhijia',
+        'tag' => '热榜',
+        'category' => 'tech',
+        'colorClass' => 'ithome-icon',
+        'url'  => 'https://www.ithome.com/'
+    ],
+    [
+        'id' => 'hackernews',
+        'name' => 'Hacker News',
+        'icon' => 'iconfont icon-code',
+        'tag' => 'Popular',
+        'category' => 'tech',
+        'colorClass' => 'hackernews-icon',
+        'url'  => 'https://news.ycombinator.com/'
+    ],
+    [
+        'id' => 'geekpark',
+        'name' => '极客公园',
+        'icon' => 'iconfont icon-jikegongyuan',
+        'tag' => '热门文章',
+        'category' => 'tech',
+        'colorClass' => 'geekpark-icon',
+        'url'  => 'https://www.geekpark.net/'
+    ],
+    [
+        'id' => 'dgtle',
+        'name' => '数字尾巴',
+        'icon' => 'iconfont icon-shuzhuweiba',
+        'tag' => '热门文章',
+        'category' => 'tech',
+        'colorClass' => 'dgtle-icon',
+        'url'  => 'https://www.dgtle.com/'
+    ],
+    [
+        'id' => 'smzdm',
+        'name' => '什么值得买',
+        'icon' => 'iconfont icon-shanmizhimai',
+        'tag' => '今日热门',
+        'category' => 'knowledge',
+        'colorClass' => 'smzdm-icon',
+        'url'  => 'https://www.smzdm.com/'
+    ],
+    [
+        'id' => 'weatheralarm',
+        'name' => '中央气象台',
+        'icon' => 'iconfont icon-tianqi',
+        'tag' => '气象预警',
+        'category' => '_other',
+        'colorClass' => 'weatheralarm-icon',
+        'url'  => 'http://www.nmc.cn/'
+    ],
+    [
+        'id' => 'ngabbs',
+        'name' => 'NGA',
+        'icon' => 'iconfont icon-nga',
+        'tag' => '论坛热帖',
+        'category' => 'game',
+        'colorClass' => 'ngabbs-icon',
+        'url'  => 'https://ngabbs.com/'
+    ],
+    [
+        'id' => 'douban_group',
+        'name' => '豆瓣讨论',
+        'icon' => 'iconfont icon-douban',
+        'tag' => '讨论精选',
+        'category' => 'community',
+        'colorClass' => 'douban_group-icon',
+        'url'  => 'https://www.douban.com/group/explore'
+    ],
+    [
+        'id' => 'jianshu',
+        'name' => '简书',
+        'icon' => 'iconfont icon-shuji',
+        'tag' => '热门推荐',
+        'category' => 'community',
+        'colorClass' => 'jianshu-icon',
+        'url'  => 'https://www.jianshu.com/'
+    ],
+    [
+        'id' => 'csdn',
+        'name' => 'CSDN',
+        'icon' => 'iconfont icon-code',
+        'tag' => '博客热榜',
+        'category' => 'tech',
+        'colorClass' => 'csdn-icon',
+        'url'  => 'https://blog.csdn.net/'
+    ],
+    [
+        'id' => 'xiaohongshu',
+        'name' => '小红书',
+        'icon' => 'iconfont icon-tubiao-xiaohongshu',
+        'tag' => '首页推荐',
+        'category' => 'community',
+        'colorClass' => 'xiaohongshu-icon',
+        'url'  => 'https://www.xiaohongshu.com/explore'
     ]
 ];
 
@@ -379,6 +566,7 @@ $apiBaseUrl = '/api/index.php/';
 //   放到 $GLOBALS 里后，任何地方都能读到，不用每次都 global $var。
 // ============================================================
 $GLOBALS['site_config'] = $site_config;
+$GLOBALS['categories']  = $categories;
 $GLOBALS['sources']     = $sources;
 $GLOBALS['apiBaseUrl']  = $apiBaseUrl;
 

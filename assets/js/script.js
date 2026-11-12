@@ -82,7 +82,8 @@ function formatNow() {
  */
 function openHotLink(url, target) {
     if (!url || url === '#') return;
-    window.open(url, target || '_blank');
+    // target 未传时用全局 LINK_TARGET（由 PHP 从 config 注入）
+    window.open(url, target || (typeof LINK_TARGET !== 'undefined' ? LINK_TARGET : '_blank'));
 }
 
 
