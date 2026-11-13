@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 5169170 */
-  src: url('iconfont.woff2?t=1782771366448') format('woff2'),
-       url('iconfont.woff?t=1782771366448') format('woff'),
-       url('iconfont.ttf?t=1782771366448') format('truetype');
+  src: url('iconfont.woff2?t=1794490454532') format('woff2'),
+       url('iconfont.woff?t=1794490454532') format('woff'),
+       url('iconfont.ttf?t=1794490454532') format('truetype');
 }
 
 .iconfont {
@@ -11,6 +11,78 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-Ai:before {
+  content: "\e6c2";
+}
+
+.icon-diyi:before {
+  content: "\e6e9";
+}
+
+.icon-wangyiyunyinle:before {
+  content: "\eb7d";
+}
+
+.icon-danchemoshi:before {
+  content: "\e636";
+}
+
+.icon-itzhijia:before {
+  content: "\e612";
+}
+
+.icon-shuzi:before {
+  content: "\e641";
+}
+
+.icon-sina_icon:before {
+  content: "\e615";
+}
+
+.icon-tencent:before {
+  content: "\e616";
+}
+
+.icon-jianti:before {
+  content: "\e6d7";
+}
+
+.icon-sina:before {
+  content: "\e617";
+}
+
+.icon-zhidemai-active:before {
+  content: "\e618";
+}
+
+.icon-hacker:before {
+  content: "\e619";
+}
+
+.icon-youxiwanjia:before {
+  content: "\e62d";
+}
+
+.icon-doubanwang:before {
+  content: "\eb78";
+}
+
+.icon-xiaohongshu:before {
+  content: "\eb79";
+}
+
+.icon-qixiang:before {
+  content: "\e61a";
+}
+
+.icon-jikeshijian:before {
+  content: "\e661";
+}
+
+.icon-csdn:before {
+  content: "\e608";
 }
 
 .icon-shandian:before {

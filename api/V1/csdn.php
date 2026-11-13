@@ -6,9 +6,12 @@
 
 class CsdnHotSearch {
 
-    public function handle($limit = 50) {
+    public function handle($limit = 20) {
+        // CSDN 只爬 20 条
+        $limit = min((int)$limit, 20);
+
         try {
-            $url = 'https://blog.csdn.net/phoenix/web/blog/hotRank?page=0&pageSize=' . min($limit, 50);
+            $url = 'https://blog.csdn.net/phoenix/web/blog/hotRank?page=0&pageSize=' . $limit;
             $json = $this->curl($url);
 
             if (empty($json)) {

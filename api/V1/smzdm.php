@@ -6,7 +6,10 @@
 
 class SmzdmHotSearch {
 
-    public function handle($limit = 50) {
+    public function handle($limit = 20) {
+        // 什么值得买只爬 20 条
+        $limit = min((int)$limit, 20);
+
         try {
             $url = 'https://post.smzdm.com/rank/json_more/?unit=1';
             $json = $this->curl($url);

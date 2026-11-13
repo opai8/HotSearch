@@ -1,19 +1,31 @@
 <?php
 /**
- * 简书处理器
- * 数据来源: https://www.jianshu.com/ (note-list > li)
- * 使用 DOMDocument + DOMXPath 解析
+ * 简书处理器 - 首页「今日热点」
+ * 数据来源: https://www.jianshu.com/ (SSR 直接嵌入 today-selection-list)
+ *
+ * 反爬关键: 简书会拦截带完整现代浏览器指纹 (Sec-Ch-Ua / Sec-Fetch-* /
+ * Upgrade-Insecure-Requests) 的请求，返回 403 code:9 "异常请求"。
+ * 最简 curl (只有基础 UA + Accept) 反而能正常返回完整 HTML。
  */
 
 class JianshuHotSearch {
 
-    public function handle($limit = 50) {
+    public function handle($limit = 20) {
         try {
-            $url = 'https://www.jianshu.com/';
-            $html = $this->curl($url);
+            $html = $this->curl('https://www.jianshu.com/');
 
             if (empty($html)) {
                 return array('success' => false, 'message' => '请求失败');
+            }
+
+            // 检查是否被反爬拦截
+            if (strpos($html, '"code":9') !== false && strpos($html, '异常请求') !== false) {
+                return array('success' => false, 'message' => '被简书反爬拦截(403)');
+            }
+
+            // 优先解析 today-selection-list (今日热点)
+            if (strpos($html, 'today-selection-list') === false) {
+                return array('success' => false, 'message' => '页面结构变更（未找到今日热点）');
             }
 
             libxml_use_internal_errors(true);
@@ -21,79 +33,49 @@ class JianshuHotSearch {
             @$dom->loadHTML('<?xml encoding="UTF-8">' . $html);
             $xpath = new DOMXPath($dom);
 
-            // 找到 ul.note-list 下所有 li
-            $items = $xpath->query('//ul[contains(@class, "note-list")]//li');
-            if (!$items || $items->length == 0) {
+            // 找到 today-selection-list 容器
+            $list = $xpath->query('//div[contains(@class, "today-selection-list")]');
+            if (!$list || $list->length == 0) {
                 libxml_clear_errors();
-                return array('success' => false, 'message' => '页面结构变更（未找到 note-list）');
+                return array('success' => false, 'message' => '未找到今日热点容器');
             }
 
+            $container = $list->item(0);
+
+            // 提取容器内所有 /p/ 链接
+            $links = $xpath->query('.//a[contains(@href, "/p/")]', $container);
+
             $result = array();
-            foreach ($items as $item) {
+            foreach ($links as $a) {
                 if (count($result) >= $limit) break;
 
-                // 标题和链接：a.title
-                $titleNode = $xpath->query('.//a[contains(@class, "title")]', $item);
-                $title = '';
-                $url = '';
-                if ($titleNode->length > 0) {
-                    $a = $titleNode->item(0);
-                    $title = trim($a->textContent);
-                    $href = $a->getAttribute('href');
-                    if ($href) {
-                        $url = (strpos($href, 'http') === 0) ? $href : 'https://www.jianshu.com' . $href;
-                    }
-                }
+                $href = $a->getAttribute('href');
+                $title = trim($a->textContent);
 
-                // 摘要：p.abstract
-                $absNode = $xpath->query('.//p[contains(@class, "abstract")]', $item);
-                $desc = '';
-                if ($absNode->length > 0) {
-                    $desc = trim($absNode->item(0)->textContent);
-                    if (mb_strlen($desc) > 100) {
-                        $desc = mb_substr($desc, 0, 100) . '...';
-                    }
-                }
+                if (!$href || !$title) continue;
 
-                // 作者：a.nickname
-                $nickNode = $xpath->query('.//a[contains(@class, "nickname")]', $item);
-                $author = '';
-                if ($nickNode->length > 0) {
-                    $author = trim($nickNode->item(0)->textContent);
-                }
+                $url = (strpos($href, 'http') === 0) ? $href : 'https://www.jianshu.com' . $href;
 
-                // 点赞数: 找 meta 里的数字 (ic-list-like 后面)
-                $hot = '';
-                $metaText = '';
-                $meta = $xpath->query('.//div[contains(@class, "meta")]', $item);
-                if ($meta->length > 0) {
-                    $metaText = trim($meta->item(0)->textContent);
-                    // 清除换行多余空格
-                    $metaText = preg_replace('/\s+/', ' ', $metaText);
-                    // 尝试匹配最后一个数字（通常是点赞）
-                    if (preg_match_all('/(\d+)/', $metaText, $nums)) {
-                        $hot = intval(end($nums[1]));
-                    }
-                }
-
-                if ($title) {
-                    $result[] = array(
-                        'index' => count($result) + 1,
-                        'title' => $title,
-                        'url'   => $url,
-                        'hot'   => $hot,
-                        'desc'  => $author ? "作者: {$author} | {$desc}" : $desc,
-                        'pic'   => ''
-                    );
-                }
+                $result[] = array(
+                    'index' => count($result) + 1,
+                    'title' => $title,
+                    'url'   => $url,
+                    'hot'   => '',
+                    'desc'  => '',
+                    'pic'   => ''
+                );
             }
 
             libxml_clear_errors();
 
+            if (count($result) === 0) {
+                return array('success' => false, 'message' => '今日热点列表为空');
+            }
+
             return array(
                 'success'     => true,
                 'title'       => '简书',
-                'subtitle'    => '热门推荐',
+                'subtitle'    => '今日热点',
                 'total'       => count($result),
                 'update_time' => date('Y-m-d H:i:s'),
                 'data'        => $result
@@ -105,20 +87,27 @@ class JianshuHotSearch {
         }
     }
 
-    private function curl($url, $headers = array()) {
-        $defaultHeaders = array(
-            "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language: zh-CN,zh;q=0.9",
+    /**
+     * 最简 curl — 关键: 不发送 Sec-Ch-Ua / Sec-Fetch-* / Upgrade-Insecure-Requests
+     * 这些现代浏览器指纹 headers，否则会触发简书反爬 (403 code:9)
+     */
+    private function curl($url) {
+        $headers = array(
+            'User-Agent: Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+            'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language: zh-CN,zh;q=0.9',
         );
+
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array_merge($defaultHeaders, $headers));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_ENCODING, 'gzip,deflate');
+        curl_setopt($ch, CURLOPT_ENCODING, '');
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         $output = curl_exec($ch);
         curl_close($ch);
         return $output ?: '';

@@ -426,7 +426,7 @@ $sources = [
     [
         'id' => 'qq_news',
         'name' => '腾讯新闻',
-        'icon' => 'iconfont icon-xinwen',
+        'icon' => 'iconfont icon-tencent',
         'tag' => '热点榜',
         'category' => 'news',
         'colorClass' => 'qq_news-icon',
@@ -435,7 +435,7 @@ $sources = [
     [
         'id' => 'sina_news',
         'name' => '新浪新闻',
-        'icon' => 'iconfont icon-xinwen',
+        'icon' => 'iconfont icon-sina_icon',
         'tag' => '热点榜',
         'category' => 'news',
         'colorClass' => 'sina_news-icon',
@@ -444,7 +444,7 @@ $sources = [
     [
         'id' => 'sina',
         'name' => '新浪热榜',
-        'icon' => 'iconfont icon-xinwen',
+        'icon' => 'iconfont icon-sina',
         'tag' => '综合热榜',
         'category' => 'news',
         'colorClass' => 'sina-icon',
@@ -462,7 +462,7 @@ $sources = [
     [
         'id' => 'hackernews',
         'name' => 'Hacker News',
-        'icon' => 'iconfont icon-code',
+        'icon' => 'iconfont icon-hacker',
         'tag' => 'Popular',
         'category' => 'tech',
         'colorClass' => 'hackernews-icon',
@@ -471,7 +471,7 @@ $sources = [
     [
         'id' => 'geekpark',
         'name' => '极客公园',
-        'icon' => 'iconfont icon-jikegongyuan',
+        'icon' => 'iconfont icon-jikeshijian',
         'tag' => '热门文章',
         'category' => 'tech',
         'colorClass' => 'geekpark-icon',
@@ -480,7 +480,7 @@ $sources = [
     [
         'id' => 'dgtle',
         'name' => '数字尾巴',
-        'icon' => 'iconfont icon-shuzhuweiba',
+        'icon' => 'iconfont icon-shuzi',
         'tag' => '热门文章',
         'category' => 'tech',
         'colorClass' => 'dgtle-icon',
@@ -489,7 +489,7 @@ $sources = [
     [
         'id' => 'smzdm',
         'name' => '什么值得买',
-        'icon' => 'iconfont icon-shanmizhimai',
+        'icon' => 'iconfont icon-zhidemai-active',
         'tag' => '今日热门',
         'category' => 'knowledge',
         'colorClass' => 'smzdm-icon',
@@ -498,7 +498,7 @@ $sources = [
     [
         'id' => 'weatheralarm',
         'name' => '中央气象台',
-        'icon' => 'iconfont icon-tianqi',
+        'icon' => 'iconfont icon-qixiang',
         'tag' => '气象预警',
         'category' => '_other',
         'colorClass' => 'weatheralarm-icon',
@@ -507,7 +507,7 @@ $sources = [
     [
         'id' => 'ngabbs',
         'name' => 'NGA',
-        'icon' => 'iconfont icon-nga',
+        'icon' => 'iconfont icon-youxiwanjia',
         'tag' => '论坛热帖',
         'category' => 'game',
         'colorClass' => 'ngabbs-icon',
@@ -516,7 +516,7 @@ $sources = [
     [
         'id' => 'douban_group',
         'name' => '豆瓣讨论',
-        'icon' => 'iconfont icon-douban',
+        'icon' => 'iconfont icon-doubanwang',
         'tag' => '讨论精选',
         'category' => 'community',
         'colorClass' => 'douban_group-icon',
@@ -525,7 +525,7 @@ $sources = [
     [
         'id' => 'jianshu',
         'name' => '简书',
-        'icon' => 'iconfont icon-shuji',
+        'icon' => 'iconfont icon-jianti',
         'tag' => '热门推荐',
         'category' => 'community',
         'colorClass' => 'jianshu-icon',
@@ -534,7 +534,7 @@ $sources = [
     [
         'id' => 'csdn',
         'name' => 'CSDN',
-        'icon' => 'iconfont icon-code',
+        'icon' => 'iconfont icon-csdn',
         'tag' => '博客热榜',
         'category' => 'tech',
         'colorClass' => 'csdn-icon',
@@ -543,11 +543,47 @@ $sources = [
     [
         'id' => 'xiaohongshu',
         'name' => '小红书',
-        'icon' => 'iconfont icon-tubiao-xiaohongshu',
+        'icon' => 'iconfont icon-xiaohongshu',
         'tag' => '首页推荐',
         'category' => 'community',
         'colorClass' => 'xiaohongshu-icon',
         'url'  => 'https://www.xiaohongshu.com/explore'
+    ],
+    [
+        'id' => 'netease',
+        'name' => '网易云音乐',
+        'icon' => 'iconfont icon-wangyiyunyinle',
+        'tag' => '热歌榜',
+        'category' => 'entertainment',
+        'colorClass' => 'netease-icon',
+        'url'  => 'https://music.163.com/#/discover/toplist?id=3778678'
+    ],
+    [
+        'id' => 'aibase',
+        'name' => 'AIbase',
+        'icon' => 'iconfont icon-Ai',
+        'tag' => 'AI日报',
+        'category' => 'tech',
+        'colorClass' => 'aibase-icon',
+        'url'  => 'https://news.aibase.com/zh/daily'
+    ],
+    [
+        'id' => 'autohome',
+        'name' => '汽车之家',
+        'icon' => 'iconfont icon-danchemoshi',
+        'tag' => '媳妇当车模',
+        'category' => '_other',
+        'colorClass' => 'autohome-icon',
+        'url'  => 'https://club.autohome.com.cn/jingxuan/104/1?sort=time'
+    ],
+    [
+        'id' => 'yicai',
+        'name' => '第一财经',
+        'icon' => 'iconfont icon-diyi',
+        'tag' => '新闻周榜',
+        'category' => 'news',
+        'colorClass' => 'yicai-icon',
+        'url'  => 'https://www.yicai.com/news/'
     ]
 ];
 

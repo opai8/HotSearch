@@ -240,7 +240,7 @@ include __DIR__ . '/home/header.php';
         <?php if ($isHistory): ?>
             <!-- 历史页专属提示条 -->
             <div class="platform-breadcrumb" style="background:#fff8e6; border-radius:6px; padding:8px 14px; color:#a86c00; border:1px solid #ffe58f; margin-bottom:14px;">
-                <span class="iconfont icon-tishi" style="font-size:14px; margin-right:6px;"></span>
+                <span class="iconfont icon-gonggao" style="font-size:14px; margin-right:6px;"></span>
                 这是 <?php echo $dateFull; ?> 的历史存档，数据永久保留不更新。
                 <a href="/<?php echo $sourceId; ?>" style="margin-left:8px;">查看今天 →</a>
             </div>
@@ -292,7 +292,7 @@ include __DIR__ . '/home/header.php';
                 <a href="<?php echo escapeHtml($platformUrl); ?>" target="<?php echo getLinkTarget(); ?>" rel="noopener">原始来源 ↗</a>
                 <?php if (!$isHistory): ?>
                 <button onclick="location.search='?force=1'" title="强制刷新数据">
-                    <span class="iconfont icon-shanchuanshuaxin" style="font-size:12px; margin-right:3px;"></span>强制刷新
+                    <span class="iconfont icon-shuaxin" style="font-size:12px; margin-right:3px;"></span>强制刷新
                 </button>
                 <?php endif; ?>
             </div>

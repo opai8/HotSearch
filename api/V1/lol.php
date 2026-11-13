@@ -7,9 +7,12 @@
 
 class LolHotSearch {
 
-    public function handle($limit = 50) {
+    public function handle($limit = 20) {
+        // 英雄联盟只爬 20 条
+        $limit = min((int)$limit, 20);
+
         try {
-            $url = 'https://apps.game.qq.com/cmc/zmMcnTargetContentList?r0=json&page=1&num=' . intval($limit) . '&target=23&source=web_pc';
+            $url = 'https://apps.game.qq.com/cmc/zmMcnTargetContentList?r0=json&page=1&num=' . $limit . '&target=23&source=web_pc';
             $json = $this->curl($url);
 
             if (empty($json)) {

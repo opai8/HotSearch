@@ -6,9 +6,12 @@
 
 class WeatheralarmHotSearch {
 
-    public function handle($limit = 50) {
+    public function handle($limit = 10) {
+        // 中央气象台只爬 10 条
+        $limit = min((int)$limit, 10);
+
         try {
-            $url = 'http://www.nmc.cn/rest/findAlarm?pageNo=1&pageSize=' . min($limit, 50) . '&signaltype=&signallevel=&province=';
+            $url = 'http://www.nmc.cn/rest/findAlarm?pageNo=1&pageSize=' . $limit . '&signaltype=&signallevel=&province=';
             $json = $this->curl($url);
 
             if (empty($json)) {
