@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * AIbase - AI日报
  * 数据源: https://news.aibase.com/zh/daily
@@ -16,20 +16,18 @@ class AibaseHotSearch {
                 'Accept-Language: zh-CN,zh;q=0.9',
             );
 
-            $ch = curl_init($url);
+            $ch = smartCurlInit();
+            curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 20);
             curl_setopt($ch, CURLOPT_ENCODING, '');
-            $html = curl_exec($ch);
+            $html = smartCurlExec($ch, 'aibase');
             curl_close($ch);
 
             if (!$html) return array('success' => false, 'message' => '请求失败');
 
-            // 解析 SSR 里的 /zh/daily/xxx 链接
-            preg_match_all('/href="(\/zh\/daily\/(\d+))"[^>]*>(.*?)<\/a>/s', $html, $matches, PREG_SET_ORDER);
+            // 解析 SSR 里的 /zh/daily/xxx 链接，从 img alt 属性取标题（避免正文混入）
+            preg_match_all('/href="(\/zh\/daily\/(\d+))"[^>]*>.*?alt="([^"]*)"/s', $html, $matches, PREG_SET_ORDER);
 
             $result = array();
             $seenIds = array();
@@ -39,12 +37,11 @@ class AibaseHotSearch {
 
                 $path = $m[1];      // /zh/daily/32282
                 $id = $m[2];        // 32282
-                $title = trim(strip_tags($m[3]));
+                $title = trim($m[3]);
 
-                // 截断标题：遇到第一个换行、空行或长度超过 100 字符就停
-                if (preg_match('/(\r\n|\n{2,}|\r{2,})/', $title, $pos, PREG_OFFSET_CAPTURE)) {
-                    $title = substr($title, 0, $pos[0][1]);
-                }
+                // 去掉 "AI日报：" 前缀
+                $title = preg_replace('/^AI日报[：:]\s*/u', '', $title);
+
                 if (mb_strlen($title) > 100) {
                     $title = mb_substr($title, 0, 100) . '...';
                 }

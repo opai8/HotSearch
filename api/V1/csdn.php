@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * CSDN 博客热榜处理器
  * 数据来源: https://blog.csdn.net/phoenix/web/blog/hotRank
@@ -70,17 +70,14 @@ class CsdnHotSearch {
             "Referer: https://blog.csdn.net/",
             "Origin: https://blog.csdn.net",
         );
-        $ch = curl_init();
+        $ch = smartCurlInit();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array_merge($defaultHeaders, $headers));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_ENCODING, '');  // 自动处理所有压缩格式
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 20);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
-        $output = curl_exec($ch);
+        $output = smartCurlExec($ch, 'csdn');
         curl_close($ch);
         return $output ?: '';
     }

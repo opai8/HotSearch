@@ -14,6 +14,11 @@
  *     "time_str": "2026-06-21 19:49",
  *     "data": [ ... ]
  *   }
+ *
+ * 防刷策略（三层）：
+ *   第 1 层 前端防抖    → script.js 里 30 秒内不能点同一按钮
+ *   第 2 层 后端平台冷却 → 同一平台 120 秒内只能刷 1 次（文件锁）
+ *   第 3 层 后端 IP 限流 → 同一 IP 每分钟最多 3 次刷新（滑动窗口）
  */
 
 // 引入核心模块（通过根目录的 function.php 统一加载 config / helper / fetcher）
@@ -22,6 +27,42 @@ require_once dirname(__DIR__) . '/function.php';
 // 设置响应头（允许跨域访问，用于 AJAX 调用）
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
+
+// ============================================================
+// 防刷：IP 总限流（每分钟 30 次）+ 单平台冷却（15 秒）
+// 锁文件带 _refresh 后缀，和 platform.php / api 入口隔离，互不干扰
+// 已移除本地 bypass，所有 IP 统一对待
+// ============================================================
+$rateLimitPerMinute = 30;
+$cooldownSec        = 15;
+
+$lockDir = $GLOBALS['cache_dir'] . DIRECTORY_SEPARATOR . '_locks';
+if (!is_dir($lockDir)) {
+    @mkdir($lockDir, 0755, true);
+}
+$ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '127.0.0.1';
+$ipLockFile = $lockDir . DIRECTORY_SEPARATOR . 'ip_refresh_' . md5($ip) . '.json';
+
+$window = [];
+if (file_exists($ipLockFile)) {
+    $window = json_decode(@file_get_contents($ipLockFile), true) ?: [];
+}
+$window = array_values(array_filter($window, function ($t) { return $t > time() - 60; }));
+
+if (count($window) >= $rateLimitPerMinute) {
+    http_response_code(429);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'success' => false,
+        'message' => '请求过于频繁，请稍后再试（每分钟最多 ' . $rateLimitPerMinute . ' 次）',
+        'retry_after' => 60 - (time() - $window[0])
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+$window[] = time();
+@file_put_contents($ipLockFile, json_encode($window), LOCK_EX);
+
+// ============================================================
 
 // 获取参数
 $source = isset($_GET['source']) ? $_GET['source'] : '';
@@ -67,6 +108,27 @@ if ($source !== 'all') {
         ], JSON_UNESCAPED_UNICODE);
         exit;
     }
+
+    // ============================================================
+    // 单平台冷却（15 秒）——用独立锁文件，和 platform.php force 互不干扰
+    // 已移除本地 bypass，所有 IP 统一对待
+    // ============================================================
+    $sourceLockFile = $lockDir . DIRECTORY_SEPARATOR . 'source_' . $source . '_refresh.lock';
+    if (file_exists($sourceLockFile)) {
+        $last = (int)@file_get_contents($sourceLockFile);
+        $elapsed = time() - $last;
+        if ($elapsed < $cooldownSec) {
+            header('Content-Type: application/json; charset=utf-8');
+            http_response_code(429);
+            echo json_encode([
+                'success' => false,
+                'message' => '刷新太频繁啦，请 ' . ($cooldownSec - $elapsed) . ' 秒后再试',
+                'retry_after' => $cooldownSec - $elapsed
+            ], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+    }
+    @file_put_contents($sourceLockFile, time(), LOCK_EX);
 
     // 清除旧缓存，然后强制刷新
     clearCache($source);

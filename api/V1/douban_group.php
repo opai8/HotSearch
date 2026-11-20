@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * 豆瓣讨论广场处理器
  * 数据来源: https://www.douban.com/group/explore
@@ -102,15 +102,12 @@ class DoubanGroupHotSearch {
             "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             "Accept-Language: zh-CN,zh;q=0.9",
         );
-        $ch = curl_init();
+        $ch = smartCurlInit();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array_merge($defaultHeaders, $headers));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_ENCODING, 'gzip,deflate');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-        $output = curl_exec($ch);
+        $output = smartCurlExec($ch, 'douban_group');
         curl_close($ch);
         return $output ?: '';
     }

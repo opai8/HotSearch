@@ -25,6 +25,28 @@ require_once __DIR__ . '/function.php';
 // 读取配置（简写，后面用着方便）
 $cfg = $GLOBALS['site_config'];
 
+// ============================================================
+// 按 api_version 过滤平台列表
+// 原理：版本目录是唯一真相源，只有 api/{version}/ 下实际存在 handler 的平台才展示
+// ============================================================
+$apiVersion = 'V1';
+if (!empty($cfg['api_version'])) {
+    $apiVersion = preg_replace('/[^V0-9]/', '', strtoupper($cfg['api_version'])) ?: 'V1';
+}
+$versionDir = __DIR__ . '/api/' . $apiVersion;
+$availableIds = [];
+if (is_dir($versionDir)) {
+    foreach (glob($versionDir . '/*.php') as $f) {
+        $availableIds[] = strtolower(pathinfo($f, PATHINFO_FILENAME));
+    }
+}
+// 过滤 $GLOBALS['sources']，只保留版本目录里有的
+if (!empty($availableIds)) {
+    $GLOBALS['sources'] = array_values(array_filter($GLOBALS['sources'], function($s) use ($availableIds) {
+        return in_array(strtolower($s['id']), $availableIds, true);
+    }));
+}
+
 
 // ============================================================
 // 页面级静态缓存
@@ -45,25 +67,26 @@ if (!empty($cfg['page_cache_enable'])) {
         $cfg['show_source_link'],
         $cfg['show_refresh_btn'],
         $cfg['show_notice_bar'],
+        $apiVersion,  // API 版本（影响展示哪些平台）
         count($GLOBALS['sources']),
-        $GLOBALS['categories'],       // 分类定义（分组顺序/名称变了也要失效）
-        array_column($GLOBALS['sources'], 'category'),  // 每个平台的 category 归属
     ]));
     $cacheFile = $cfg['cache_dir'] . '/' . $cacheKey . '.html';
     $cacheTtl = isset($cfg['page_cache_ttl']) ? intval($cfg['page_cache_ttl']) : 1800;
 
     // 缓存有效 → 直接输出
+    // （缓存文件里已包含生成时间，由写入时 footer.php 计算好）
     if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < $cacheTtl) {
-        $content = file_get_contents($cacheFile);
-        $loadTime = microtime(true) - $startTime;
-        $timeStr = $loadTime < 1 ? round($loadTime * 1000, 0) . ' ms' : round($loadTime, 2) . ' 秒';
-        $timeHtml = '<span class="iconfont icon-shandian" style="font-size:12px; vertical-align:middle; margin-right:2px;"></span>页面加载耗时: ' . $timeStr . ' (来自缓存)';
-        $content = str_replace('<!--GEN_TIME_PLACEHOLDER-->', $timeHtml, $content);
-        echo $content;
+        echo file_get_contents($cacheFile);
         exit;
     }
 
-    // 缓存失效 → 开始捕获输出
+    // 缓存失效 → 清理自己的过期缓存，然后开始重新渲染
+    // 只清 page_index_*.html，不碰其他页面的缓存
+    foreach (glob($cfg['cache_dir'] . '/page_index_*.html') ?: [] as $old) {
+        if ($old !== $cacheFile && filemtime($old) < time() - $cacheTtl) {
+            @unlink($old);
+        }
+    }
     ob_start();
 }
 
@@ -79,21 +102,6 @@ if (!empty($cfg['page_cache_enable'])) {
 // ============================================================
 $cardsData = fetchAllSourcesData($GLOBALS['sources'], $cfg['api_limit']);
 $displayLimit = $cfg['display_limit'];  // 折叠状态显示多少条
-$categories   = $GLOBALS['categories']; // 分类定义（固定顺序 + 白名单）
-
-// ============================================================
-// 分组预处理：把卡片按 category 归类，不在白名单里的归 _other 兜底
-// 只遍历一次，渲染时按 $categories 定义的顺序输出
-// ============================================================
-$whiteList = array_filter(array_keys($categories), fn($k) => $k !== '_other');
-$groupedCards = [];
-foreach ($cardsData as $card) {
-    $cat = $card['source']['category'] ?? '';
-    if (!in_array($cat, $whiteList)) {
-        $cat = '_other';
-    }
-    $groupedCards[$cat][] = $card;
-}
 
 
 // ============================================================
@@ -158,27 +166,27 @@ $dynamicCss = genDynamicCss($cfg);
  * @param array   $cfg           全局配置（用于各种开关判断）
  * @return string HTML 字符串
  */
-function renderCardBody($data, $error, $displayLimit, $cfg) {
+function renderCardBody($data, $error, $displayLimit, $cfg, $sourceId = '') {
     // --- 有错误时显示错误提示 ---
     if ($error) {
-        return '<div class="card-body"><div class="error"><span class="iconfont icon-cuowu" style="margin-right:4px;"></span>' . escapeHtml($error) . '</div></div>';
+        return '<div class="card-body"><div class="error"><span class="iconfont icon-cuowu card-inline-icon"></span>' . escapeHtml($error) . '</div></div>';
     }
     // --- 没数据时显示暂无数据 ---
     if (empty($data)) {
-        return '<div class="card-body"><div class="loading"><span class="iconfont icon-wushuju" style="margin-right:4px;"></span>暂无数据</div></div>';
+        return '<div class="card-body"><div class="loading"><span class="iconfont icon-wushuju card-inline-icon"></span>暂无数据</div></div>';
     }
 
     $total = count($data);
-    $showN = min($displayLimit, $total);  // 实际显示的条数（不超过总数）
 
     // ===== 开始拼装 HTML =====
     $html = '<div class="card-body">';
 
     // --- 热搜列表（SEO：ol 表示有序列表，适合排名）
+    // 渲染全部条目给搜索引擎看，折叠由 JS/CSS 控制
     $html .= '<ol class="hot-list">';
 
-    // 循环渲染前 N 条热搜
-    for ($i = 0; $i < $showN; $i++) {
+    // 循环渲染全部热搜（不再截断到 $displayLimit，SEO 需要完整内容）
+    for ($i = 0; $i < $total; $i++) {
         $item = $data[$i];
 
         // 前三名特殊样式 class（top1/top2/top3）
@@ -188,37 +196,51 @@ function renderCardBody($data, $error, $displayLimit, $cfg) {
         elseif  ($i === 2) $rankClass = ' top3';
 
         $title = isset($item['title']) ? $item['title'] : '';
-        $url   = isset($item['url'])   ? $item['url']   : '#';
+        $url   = isset($item['url'])   ? $item['url']   : '';
+        // 数据源 url 为空时的 fallback 映射（部分平台只提供列表不提供单条链接）
+        if (empty($url) || $url === '#') {
+            $urlMap = [
+                'sina'     => 'https://news.sina.com.cn/hotnews/',
+                'sina_news'=> 'https://news.sina.com.cn/',
+                'qq_news'  => 'https://new.qq.com/',
+                'wangyi'   => 'https://news.163.com/',
+                'weibo'    => 'https://s.weibo.com/top/summary',
+            ];
+            $url = isset($urlMap[$sourceId]) ? $urlMap[$sourceId] : '#';
+        }
         $hot   = isset($item['hot'])   ? $item['hot']   : '';
 
-        // 热度值 HTML（配置里关了就不显示）
+        // 右侧指标区：统一小火苗图标，有数值就显示，没数值就空
         $hotHtml = '';
-        if ($cfg['show_heat'] && $hot) {
-            $hotHtml = '<span class="hot-heat"><span class="iconfont icon-xiaohuomiao" style="font-size:12px; margin-right:2px;"></span>' . escapeHtml($hot) . '</span>';
+        if ($cfg['show_heat'] && $hot !== '' && $hot !== null && $hot !== 0 && $hot !== '0') {
+            $hotHtml = '<span class="hot-heat"><span class="iconfont icon-xiaohuomiao hot-fire-icon"></span>' . escapeHtml((string)$hot) . '</span>';
         }
 
         // 拼装单条 li
-        // 新手提示：data-tooltip 是自定义属性，CSS 里用 ::before 伪元素读取它来显示提示文字
-        $html .= '<li class="hot-item" onclick="openHotLink(\'' . escapeHtml($url) . '\')" data-tooltip="' . escapeHtml($title) . '">'
+        // SEO：hot-title 用 <a> 标签让爬虫能追踪真实链接；onclick 里 return false 阻止 a 默认行为，仍走 JS 的 window.open
+        // data-tooltip 是自定义属性，JS 动态读取它来显示跟随鼠标的 tooltip
+        $safeTitle = escapeHtml($title);
+        $safeUrl   = escapeHtml($url);
+        $html .= '<li class="hot-item" data-tooltip="' . $safeTitle . '">'
               .    '<span class="rank' . $rankClass . '">' . ($i + 1) . '</span>'
-              .    '<span class="hot-title">' . escapeHtml($title) . '</span>'
+              .    '<a class="hot-title" href="' . $safeUrl . '" target="_blank" rel="noopener noreferrer" onclick="openHotLink(\'' . $safeUrl . '\');return false;">' . $safeTitle . '</a>'
               .    $hotHtml
               . '</li>';
     }
 
+    // --- "展开全部" 控制条（永远渲染，保持 11 行 grid 结构）---
+    // 数据 > displayLimit：可见、可点击
+    // 数据 ≤ displayLimit：visibility: hidden 占位（保持第 11 行空间但不显示）
+    $expandPlaceholder = ($total <= $displayLimit) ? ' is-placeholder' : '';
+    $html .= '<li class="card-expand-bar hot-item-expand' . $expandPlaceholder . '" onclick="toggleExpandByCard(this)">'
+          .    '<span class="rank-expand"><span class="iconfont icon-arrow_down_fat"></span></span>'
+          .    '<span class="expand-title">展开全部 ' . $total . ' 条</span>'
+          .    '<span class="expand-arrow">点击展开</span>'
+          . '</li>';
+
     $html .= '</ol>';
 
-    // --- "展开全部" 控制条（仅当总条数超过显示上限时显示）---
-    // 新手提示：展开条在 ul 外面，跟在列表后面，和数据一起滚动
-    if ($total > $displayLimit) {
-        $html .= '<div class="card-expand-bar hot-item-expand" onclick="toggleExpandByCard(this)">'
-              .    '<span class="rank-expand"><span class="iconfont icon-arrow_down_fat"></span></span>'
-              .    '<span class="expand-title">展开全部 ' . $total . ' 条</span>'
-              .    '<span class="expand-arrow">点击展开</span>'
-              . '</div>';
-    }
-
-    $html .= '</div>';
+    $html .= '</div>';   // 关闭 card-body
     return $html;
 }
 
@@ -229,13 +251,13 @@ function renderCardBody($data, $error, $displayLimit, $cfg) {
 include __DIR__ . '/home/header.php';
 ?>
 
-    <!-- SEO：页面主标题 -->
-    <h1 class="sr-only"><?php echo escapeHtml($cfg['site_name']); ?> - <?php echo escapeHtml($cfg['site_desc']); ?></h1>
+    <!-- H1 主标题 = header.php 里可见的 site-title（避免多 h1 + 避免 sr-only cloaking 风险） -->
+    <?php
+    // SEO：把平台名作为关键词锚点注入 meta description 已足够，不在 H1 里重复
+    // 搜索引擎会从 header 的 site-title 取主标题，meta description 取关键词补充
+    ?>
 
-    <!-- ===== 通知栏样式 ===== -->
-    <link rel="stylesheet" href="/assets/css/notice-bar.css">
-    <link rel="stylesheet" href="/assets/css/notice-bar-dark.css">
-    <link rel="stylesheet" href="/assets/css/notice-bar-responsive.css">
+    <!-- ===== 通知栏样式已合并到 style.css / theme-dark.css / responsive.css ===== -->
 
     <!-- ===== 动态 CSS（根据配置生成的布局样式）===== -->
     <!-- 新手提示：这里的 CSS 是 PHP 根据 config.php 的配置动态生成的 -->
@@ -248,88 +270,93 @@ include __DIR__ . '/home/header.php';
     if ($cfg['show_notice_bar']) {
         include __DIR__ . '/home/notice-bar.php';
     }
-    ?>
 
-    <?php
-    // 首页 tab 栏：$activeCat 未设置 → 「全部」高亮
-    include __DIR__ . '/home/category-tabs.php';
+    // ===== 顶部 banner 广告（notice-bar 下方，全宽）=====
+    $bannerAds = isset($cfg['top_banner_ads']) ? $cfg['top_banner_ads'] : [];
+    foreach ($bannerAds as $ad) {
+        if (empty($ad['enabled'])) continue;
+        $adTitle = escapeHtml($ad['title'] ?? '');
+        $adImg   = escapeHtml($ad['img'] ?? '');
+        $adUrl   = escapeHtml($ad['url'] ?? '#');
+        $adBadge = escapeHtml(!empty($ad['badge']) ? $ad['badge'] : '广告');
+        if (empty($adImg) || $adUrl === '#') continue;
+        echo '<a class="ad-banner" href="' . $adUrl . '" target="_blank" rel="noopener noreferrer">'
+           . '<img src="' . $adImg . '" alt="' . $adTitle . '" loading="lazy">'
+           . '<span class="ad-badge">' . $adBadge . '</span>'
+           . '</a>';
+    }
     ?>
 
     <!-- ============================================================
-         热搜卡片网格（主体内容）
-         ============================================================
-         新手提示：
-         - .hot-grid 是 CSS Grid 布局，列数从配置读取
-         - 每个 .hot-card 是一张卡片，固定高度，内容超出内部滚动
-         - 卡片结构：card-header（顶部）+ card-body（中间滚动）+ card-footer（底部）
+         热搜卡片网格（主体内容，平铺显示）
          ============================================================ -->
     <main class="main-content" role="main">
-    <?php foreach ($categories as $slug => $catInfo): ?>
-    <?php if (empty($groupedCards[$slug])) continue; ?>
-    <!--
-        分类区块：按 config.php 的 $categories 固定顺序输出
-        新增平台填 category 字段会自动归到对应分组
-        category 不在白名单里的自动进 _other 兜底组
-    -->
-    <div class="category-section" id="cat-<?php echo escapeHtml($slug); ?>">
-        <!-- 分组标题（SEO：分组名用 <h2>，平台卡片用 <article>） -->
-        <h2 class="category-title">
-            <span class="category-icon"><?php echo escapeHtml($catInfo['icon']); ?></span>
-            <span><?php echo escapeHtml($catInfo['name']); ?></span>
-            <span class="category-count"><?php echo count($groupedCards[$slug]); ?></span>
-        </h2>
-        <section class="hot-grid" aria-label="<?php echo escapeHtml($catInfo['name']); ?>平台列表">
-            <?php foreach ($groupedCards[$slug] as $card):
-                $source     = $card['source'];     // 平台配置
-                $data       = $card['data'];       // 热搜数据
-                $error      = $card['error'];      // 错误信息
+        <section class="hot-grid" aria-label="热榜平台列表">
+            <?php
+            $gridSlotAd = isset($cfg['grid_slot_ad']) ? $cfg['grid_slot_ad'] : [];
+            $gridSlotAfter = !empty($gridSlotAd['enabled']) ? intval($gridSlotAd['grid_insert_after'] ?? 6) : 0;
+
+            // 辅助函数：渲染插卡广告 HTML
+            function renderGridSlotAd($ad) {
+                $slotTitle = escapeHtml($ad['title'] ?? '');
+                $slotImg   = escapeHtml($ad['img'] ?? '');
+                $slotUrl   = escapeHtml($ad['url'] ?? '#');
+                $slotBadge = escapeHtml(!empty($ad['badge']) ? $ad['badge'] : '广告');
+                if (empty($slotImg) || $slotUrl === '#') return '';
+                return '<a class="hot-card ad-card" href="' . $slotUrl . '" target="_blank" rel="noopener noreferrer" aria-label="' . $slotTitle . '">'
+                     . '<span class="ad-badge">' . $slotBadge . '</span>'
+                     . '<div class="ad-card-img-wrap"><img src="' . $slotImg . '" alt="' . $slotTitle . '" loading="lazy"></div>'
+                     . '<div class="ad-card-footer"><span class="ad-card-title">' . $slotTitle . '</span></div>'
+                     . '</a>';
+            }
+
+            $cardIndex = 0;
+            // grid_insert_after = 0 表示"第一个平台卡片之前"
+            if ($gridSlotAfter === 0 && !empty($gridSlotAd['enabled'])) {
+                echo renderGridSlotAd($gridSlotAd);
+            }
+
+            foreach ($cardsData as $card):
+                $cardIndex++;
+                $source     = $card['source'];
+                $data       = $card['data'];
+                $error      = $card['error'];
                 $updateTime = isset($card['time']) ? $card['time'] : time();
                 $sourceId   = $source['id'];
-                $bodyHtml   = renderCardBody($data, $error, $displayLimit, $cfg);
+                $bodyHtml   = renderCardBody($data, $error, $displayLimit, $cfg, $sourceId);
             ?>
-            <!-- SEO：单个卡片用 <article> 语义化标签 -->
             <article class="hot-card" data-source="<?php echo escapeHtml($sourceId); ?>" data-expanded="0" aria-labelledby="card-title-<?php echo escapeHtml($sourceId); ?>">
-                <!-- 卡片头部：平台图标 + 名称 | 标签 + 数据来源链接 -->
                 <header class="card-header">
-                    <!-- SEO：平台名称用 <h3> 标题标签（h2 已被分组标题占用） -->
-                    <h3 class="card-title" id="card-title-<?php echo escapeHtml($sourceId); ?>">
+                    <h2 class="card-title" id="card-title-<?php echo escapeHtml($sourceId); ?>">
                         <span class="iconfont <?php echo escapeHtml($source['icon']); ?> platform-icon <?php echo escapeHtml($source['colorClass']); ?>"></span>
-                        <span><?php echo escapeHtml($source['name']); ?></span>
-                    </h3>
+                        <a class="card-title-link" href="/<?php echo escapeHtml($sourceId); ?>" target="_blank" rel="noopener"><?php echo escapeHtml($source['name']); ?></a>
+                    </h2>
                     <div class="card-tag-wrap">
                         <span class="card-tag"><?php echo escapeHtml($source['tag']); ?></span>
-                        <?php
-                        // 平台详情页链接（双轨兼容）
-                        // - Apache 用户：.htaccess rewrite 自动支持 /baidu（短URL）
-                        // - Nginx 用户：默认走 /platform.php/baidu（PATH_INFO，零配置）
-                        //   Nginx 用户也可以手动加 rewrite 获得短 URL（见 README）
-                        if ($cfg['show_source_link']):
-                        ?>
-                            <a class="card-source-link" href="/platform.php/<?php echo escapeHtml($sourceId); ?>">详情</a>
+                        <?php if ($cfg['show_source_link']): ?>
+                            <a class="card-source-link" href="/<?php echo escapeHtml($sourceId); ?>">详情</a>
                         <?php endif; ?>
                     </div>
                 </header>
-                <!-- 卡片主体：数据列表 + 展开条（内部滚动） -->
                 <?php echo $bodyHtml; ?>
-                <!-- 卡片底部：更新时间 + 刷新按钮 -->
                 <footer class="card-footer">
-                    <!-- SEO：时间用 <time> 标签 -->
                     <time class="update-time" datetime="<?php echo date('c', $updateTime); ?>">
-                        <span class="iconfont icon-shijian" style="font-size:12px; margin-right:3px;"></span>
+                        <span class="iconfont icon-shijian update-time-icon"></span>
                         <?php echo escapeHtml(getUpdateTime($updateTime)); ?> 更新
                     </time>
-                    <?php
-                    // 刷新按钮（配置开关控制显示/隐藏）
-                    if ($cfg['show_refresh_btn']):
-                    ?>
+                    <?php if ($cfg['show_refresh_btn']): ?>
                         <button class="refresh-btn" onclick="refreshCard(this)" data-source="<?php echo escapeHtml($sourceId); ?>">刷新</button>
                     <?php endif; ?>
                 </footer>
             </article>
-            <?php endforeach; ?>
+            <?php
+            // ===== 卡片网格中间插卡广告 =====
+            if ($gridSlotAfter > 0 && $cardIndex === $gridSlotAfter && !empty($gridSlotAd['enabled'])) {
+                echo renderGridSlotAd($gridSlotAd);
+            }
+            endforeach;
+            ?>
         </section>
-    </div>
-    <?php endforeach; ?>
     </main>
 
 <?php
@@ -341,31 +368,24 @@ include __DIR__ . '/home/footer.php';
 
 // ============================================================
 // 页面生成耗时 + 写入页面缓存
+// （footer.php 已自行计算并输出生成时间，这里直接存/输出）
 // ============================================================
-$genTime = microtime(true) - $startTime;
-$timeStr = $genTime < 1 ? round($genTime * 1000, 0) . ' ms' : round($genTime, 2) . ' 秒';
-$timeHtml = '<span class="iconfont icon-shandian" style="font-size:12px; vertical-align:middle; margin-right:2px;"></span>页面生成耗时: ' . $timeStr;
 
 if (!empty($cfg['page_cache_enable'])) {
-    $content = ob_get_contents();
-    if ($content !== false) {
-        // 缓存内容里放占位符，读取时再替换成实际加载时间
-        $cacheContent = $content;
-        // 输出给用户的内容直接替换成生成时间
-        $content = str_replace('<!--GEN_TIME_PLACEHOLDER-->', $timeHtml, $content);
-        // 写入缓存文件（带占位符，下次读取时替换）
-        if (is_dir($cfg['cache_dir']) && is_writable($cfg['cache_dir'])) {
-            @file_put_contents($cacheFile, $cacheContent);
+    if (ob_get_level() > 0) {
+        $content = ob_get_contents();
+        if ($content !== false) {
+            // 写入缓存文件（完整内容，含 footer.php 已输出的生成时间）
+            if (is_dir($cfg['cache_dir']) && is_writable($cfg['cache_dir'])) {
+                if (file_put_contents($cacheFile, $content) === false) {
+                    error_log('index.php 写页面缓存失败: ' . $cacheFile . ' (is_writable=false 或磁盘满)');
+                }
+            }
         }
+        ob_end_clean();
+        echo $content;
     }
-    ob_end_clean();
-    echo $content;
 } elseif (ob_get_level() > 0) {
-    $content = ob_get_contents();
-    if ($content !== false) {
-        $content = str_replace('<!--GEN_TIME_PLACEHOLDER-->', $timeHtml, $content);
-    }
-    ob_end_clean();
-    echo $content;
+    ob_end_flush();
 }
 ?>

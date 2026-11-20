@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * B站热搜API处理器
  * 
@@ -100,16 +100,13 @@ class BilibiliHotSearch {
         );
         
         // 初始化curl
-        $ch = curl_init();
+        $ch = smartCurlInit();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); // 返回数据而不是输出
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE); // 跳过SSL验证
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10); // 超时时间10秒
         
         // 执行请求
-        $output = curl_exec($ch);
+        $output = smartCurlExec($ch, 'bilibili');
         curl_close($ch);
         
         return $output;

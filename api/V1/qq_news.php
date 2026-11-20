@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * 腾讯新闻热点榜处理器
  * 数据来源: https://r.inews.qq.com/gw/event/hot_ranking_list
@@ -62,15 +62,12 @@ class QqNewsHotSearch {
             "Accept: application/json, text/plain, */*",
             "Referer: https://news.qq.com/"
         );
-        $ch = curl_init();
+        $ch = smartCurlInit();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_ENCODING, 'gzip,deflate');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-        $output = curl_exec($ch);
+        $output = smartCurlExec($ch, 'qq_news');
         curl_close($ch);
         return $output ?: '';
     }

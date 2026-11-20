@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * 爱范儿处理器
  *
@@ -54,7 +54,7 @@ class IfanrHotSearch {
                     'index' => count($items) + 1,
                     'title' => $title,
                     'url'   => $id ? ('https://www.ifanr.com/digest/' . $id) : 'https://www.ifanr.com/',
-                    'hot'   => $like ? ($like . ' 👍') : '',
+                    'hot'   => is_numeric($like) ? number_format($like) : ($like ?: ''),
                     'desc'  => $comment ? ($comment . ' 评论') : '',
                     'pic'   => ''
                 );
@@ -81,17 +81,14 @@ class IfanrHotSearch {
             "Referer: https://www.ifanr.com/"
         );
 
-        $ch = curl_init();
+        $ch = smartCurlInit();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_ENCODING, 'gzip,deflate');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 
-        $output = curl_exec($ch);
+        $output = smartCurlExec($ch, 'ifanr');
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 

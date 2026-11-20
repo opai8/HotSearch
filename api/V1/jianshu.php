@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * 简书处理器 - 首页「今日热点」
  * 数据来源: https://www.jianshu.com/ (SSR 直接嵌入 today-selection-list)
@@ -98,17 +98,14 @@ class JianshuHotSearch {
             'Accept-Language: zh-CN,zh;q=0.9',
         );
 
-        $ch = curl_init();
+        $ch = smartCurlInit();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_ENCODING, '');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 20);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        $output = curl_exec($ch);
+        $output = smartCurlExec($ch, 'jianshu');
         curl_close($ch);
         return $output ?: '';
     }

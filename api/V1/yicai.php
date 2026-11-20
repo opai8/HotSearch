@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * 第一财经 - 新闻排行（周榜）
  * 数据源: https://www.yicai.com/api/ajax/getranklistbykeys?keys=newsRank
@@ -27,14 +27,12 @@ class YicaiHotSearch {
                 'X-Requested-With: XMLHttpRequest',
             );
 
-            $ch = curl_init($url);
+            $ch = smartCurlInit();
+            curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 25);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-            $resp = curl_exec($ch);
+            $resp = smartCurlExec($ch, 'yicai');
             $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
 
@@ -63,7 +61,7 @@ class YicaiHotSearch {
                     'index' => count($result) + 1,
                     'title' => $title,
                     'url'   => 'https://www.yicai.com' . $urlPath,
-                    'hot'   => '周榜 No.' . (count($result) + 1),
+                    'hot'   => count($result) + 1,
                     'desc'  => '',
                     'pic'   => ''
                 );

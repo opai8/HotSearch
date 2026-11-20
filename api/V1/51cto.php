@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * 51CTO 推荐榜处理器
  *
@@ -9,8 +9,13 @@ class _51ctoHotSearch {
 
     public function handle($limit = 50) {
         try {
+            // EdgeOne CDN 反爬：先 GET 首页拿 cookie，再请求 API
+            $cookieFile = tempnam(sys_get_temp_dir(), '51cto_cookie_');
+            $this->curl('https://www.51cto.com/', $cookieFile, true);
+
             $url = 'https://api-media.51cto.com/index/index/recommend';
-            $json = $this->curl($url);
+            $json = $this->curl($url, $cookieFile, false);
+            @unlink($cookieFile);
 
             if (empty($json)) {
                 return array('success' => false, 'message' => 'API请求失败');
@@ -114,9 +119,9 @@ class _51ctoHotSearch {
         }
     }
 
-    private function curl($url) {
+    private function curl($url, $cookieFile = '', $isBakeCookie = false) {
         $header = array(
-            "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
             "Accept: application/json, text/plain, */*",
             "Accept-Language: zh-CN,zh;q=0.9,en;q=0.8",
             "Referer: https://www.51cto.com/",
@@ -130,20 +135,25 @@ class _51ctoHotSearch {
             "Sec-Fetch-Site: same-site"
         );
 
-        $ch = curl_init();
+        $ch = smartCurlInit();
         curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1); // EdgeOne CDN 反爬：HTTP/2 会被拦截
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_ENCODING, 'gzip,deflate');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_VERBOSE, false);
 
-        $output = curl_exec($ch);
+        if ($cookieFile) {
+            if ($isBakeCookie) {
+                curl_setopt($ch, CURLOPT_COOKIEJAR, $cookieFile);
+            } else {
+                curl_setopt($ch, CURLOPT_COOKIEFILE, $cookieFile);
+            }
+        }
+
+        $output = smartCurlExec($ch, '51cto');
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
         curl_close($ch);
 
         if ($httpCode >= 400) return '';

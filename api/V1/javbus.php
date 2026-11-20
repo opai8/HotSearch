@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * JavBus 标签幻灯片处理器（需要登录 Cookie）
  *
@@ -181,18 +181,15 @@ class JavbusHotSearch {
             "Referer: https://www.dmmsee.ink/forum/"
         );
 
-        $ch = curl_init();
+        $ch = smartCurlInit();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_ENCODING, 'gzip,deflate');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
 
-        $output = curl_exec($ch);
+        $output = smartCurlExec($ch, 'javbus');
         curl_close($ch);
 
         return $output ?: '';

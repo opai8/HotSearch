@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * 极客公园处理器
  * 数据来源: https://mainssl.geekpark.net/api/v2
@@ -59,15 +59,12 @@ class GeekparkHotSearch {
             "Accept: application/json, text/plain, */*",
             "Referer: https://www.geekpark.net/"
         );
-        $ch = curl_init();
+        $ch = smartCurlInit();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array_merge($defaultHeaders, $headers));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_ENCODING, 'gzip,deflate');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-        $output = curl_exec($ch);
+        $output = smartCurlExec($ch, 'geekpark');
         curl_close($ch);
         return $output ?: '';
     }

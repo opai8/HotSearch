@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 夜间模式主题样式
  * 使用 body[data-theme='dark'] {} 包裹
  */
@@ -47,7 +47,29 @@ body[data-theme='dark'] {
     color: #e8e8e8;
 }
 
-/* 夜间模式 - 通知栏（样式移至 notice-bar-dark.css） */
+/* ========================================
+   夜间模式 - 通知栏（已合并至此）
+   ======================================== */
+body[data-theme='dark'] .notice-bar {
+    background: #2d2d2d;
+    border-color: #404040;
+}
+
+body[data-theme='dark'] .notice-content {
+    color: #b0b0b0;
+}
+
+body[data-theme='dark'] .notice-content .src-list {
+    color: #606060;
+}
+
+body[data-theme='dark'] .notice-content span[style*="888"] {
+    color: #606060 !important;
+}
+
+body[data-theme='dark'] .notice-content a {
+    color: #8b9cf7;
+}
 
 /* ========================================
    夜间模式 - 热搜卡片
@@ -69,52 +91,20 @@ body[data-theme='dark'] .card-title {
     color: #e8e8e8;
 }
 
-/* ========================================
-   夜间模式 - 分类 Tab 栏
-   ======================================== */
-body[data-theme='dark'] .category-tab {
-    color: #b0b0b0;
-    background: #2d2d2d;
-    border-color: #404040;
-}
-body[data-theme='dark'] .category-tab:hover {
-    color: #a5b4fc;
-    border-color: #6366f1;
-    background: #252535;
-}
-body[data-theme='dark'] .category-tab.active {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-color: transparent;
-}
-body[data-theme='dark'] .category-tab-count {
-    background: #3a3a3a;
-    color: #888;
-}
-body[data-theme='dark'] .category-tab.active .category-tab-count {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.25);
-}
-body[data-theme='dark'] .category-title {
-    color: #e8e8e8;
-    border-bottom-color: #404040;
-}
-body[data-theme='dark'] .category-count {
-    background: #3a3a3a;
-    color: #a0a0a0;
-}
-body[data-theme='dark'] #cat-_other .category-title {
-    color: #909090;
+body[data-theme='dark'] .card-title-link:hover {
+    color: #8b9cf7;
 }
 
 body[data-theme='dark'] .card-tag {
-    background: #3a3a3a;
-    color: #a0a0a0;
+    background: #2a2a2a;
+    color: #888888;
+    box-shadow: inset 0 0 0 1px #3a3a3a;
 }
 
 body[data-theme='dark'] .card-source-link {
     background: #3a3a3a;
-    color: #a0a0a0;
-    border-color: #3a3a3a;
+    color: #d0d0d0;
+    border-color: #667eea;
 }
 
 body[data-theme='dark'] .card-source-link:hover {
@@ -124,7 +114,7 @@ body[data-theme='dark'] .card-source-link:hover {
 }
 
 body[data-theme='dark'] .card-footer {
-    border-top-color: #404040;
+    border-top: 1px solid #4a4a4a;
 }
 
 body[data-theme='dark'] .update-time {
@@ -157,17 +147,17 @@ body[data-theme='dark'] .rank {
 
 body[data-theme='dark'] .rank.top1 {
     background: #ff4d4f;
-    color: #fff;
+    color: #ffffff;
 }
 
 body[data-theme='dark'] .rank.top2 {
     background: #ff7a45;
-    color: #fff;
+    color: #ffffff;
 }
 
 body[data-theme='dark'] .rank.top3 {
     background: #ffa940;
-    color: #fff;
+    color: #ffffff;
 }
 
 body[data-theme='dark'] .hot-heat {
@@ -175,31 +165,32 @@ body[data-theme='dark'] .hot-heat {
 }
 
 body[data-theme='dark'] .hot-item-expand {
-    background: #2a2535;
-    border-top-color: #3d2e5c;
+    background: #1f2e1f;
+    border-top-color: #2e4d2e;
+    border-bottom-color: #2e4d2e;
 }
 
 body[data-theme='dark'] .hot-item-expand:hover {
-    background: #352e4a;
+    background: #2a3d2a;
 }
 
 body[data-theme='dark'] .hot-item-expand .rank-expand {
-    background: linear-gradient(135deg, #5c6bc0 0%, #7e57c2 100%);
+    background: linear-gradient(135deg, #389e0d 0%, #52c41a 100%);
 }
 
 body[data-theme='dark'] .hot-item-expand .expand-title {
-    color: #b39ddb;
+    color: #95de64;
 }
 
 body[data-theme='dark'] .hot-item-expand .expand-arrow {
-    color: #b39ddb;
-    background: #2d2a3a;
-    border-color: #4a3c6b;
+    color: #95de64;
+    background: #1a261a;
+    border-color: #3a5a3a;
 }
 
 body[data-theme='dark'] .hot-item-expand:hover .expand-arrow {
-    background: #352e4a;
-    border-color: #7e57c2;
+    background: #243524;
+    border-color: #52c41a;
 }
 
 body[data-theme='dark'] .hot-item-footer {
@@ -315,9 +306,9 @@ body[data-theme='dark']::-webkit-scrollbar-thumb:hover {
 }
 
 /* ========================================
-   夜间模式 - Tooltip
+   夜间模式 - Tooltip（JS 版）
    ======================================== */
-body[data-theme='dark'] [data-tooltip]::before {
+body[data-theme='dark'] .js-tooltip {
     background: #0f0f1a;
     color: #e0e0e0;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);

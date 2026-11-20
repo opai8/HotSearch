@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * 纽约时报中文网处理器（RSS）
  *
@@ -131,17 +131,14 @@ class NytimesHotSearch {
             "Accept: application/rss+xml, application/xml;q=0.9, text/xml;q=0.8, */*;q=0.7"
         );
 
-        $ch = curl_init();
+        $ch = smartCurlInit();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 
-        $output = curl_exec($ch);
+        $output = smartCurlExec($ch, 'nytimes');
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 

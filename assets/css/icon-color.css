@@ -63,10 +63,16 @@
 .hostloc-icon        { color: #0066cc; }   /* HostLoc - 蓝色 */
 .ngabbs-icon         { color: #ffcc00; }   /* NGA - 金色 */
 .douban_group-icon   { color: #41ac52; }   /* 豆瓣 - 豆瓣绿 */
+.maoyan-icon         { color: #FF2E4D; }   /* 猫眼 - 猫眼红 */
 .jianshu-icon        { color: #ff7f50; }   /* 简书 - 珊瑚橙 */
 .csdn-icon           { color: #fc5531; }   /* CSDN - 红橙色 */
-.xiaohongshu-icon    { color: #ff2442; }   /* 小红书 - 品牌红 */
 .netease-icon        { color: #31c27c; }   /* 网易云音乐 - 网易红 */
 .aibase-icon         { color: #ff6b35; }   /* AIbase - 科技橙 */
 .autohome-icon       { color: #0066cc; }   /* 汽车之家 - 蓝色 */
 .yicai-icon          { color: #1a73e8; }   /* 第一财经 - 蓝色 */
+.xiaohongshu-icon    { color: #ff2442; }   /* 小红书 - 品牌红 */
+
+/* ---------- v2 新增平台 ---------- */
+.se360-icon         { color: #0080ff; }   /* 360搜索 - 蓝色 */
+.anquanke-icon      { color: #e60012; }   /* 安全客 - 红色 */
+.dongqiudi-icon     { color: #00a627; }   /* 懂球帝 - 足球绿 */

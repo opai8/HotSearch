@@ -88,25 +88,168 @@ if (!file_exists($configFile)) {
 }
 
 $config = require $configFile;
-$platforms = isset($config['platforms']) && is_array($config['platforms']) ? $config['platforms'] : [];
+
+// 读取 API 版本（从根配置），默认 V1
+// 注意：config.php 是 $site_config = [...] 变量赋值，不是 return [...]
+$siteConfigFile = $baseDir . '/config.php';
+$apiVersion = 'V1';
+if (file_exists($siteConfigFile)) {
+    require $siteConfigFile;  // 加载 $site_config 变量
+    if (isset($site_config['api_version'])) {
+        $apiVersion = strtoupper($site_config['api_version']);
+    }
+}
+$apiVersion = preg_replace('/[^V0-9]/', '', $apiVersion) ?: 'V1';  // 安全过滤
+
+// 版本目录是唯一真相源：动态 glob 得到该版本下实际可用的平台
+$versionDir = $baseDir . '/api/' . $apiVersion;
+$platforms = [];
+if (is_dir($versionDir)) {
+    foreach (glob($versionDir . '/*.php') as $f) {
+        $platforms[] = strtolower(pathinfo($f, PATHINFO_FILENAME));
+    }
+}
+
+if (empty($platforms)) {
+    http_response_code(501);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'success' => false,
+        'message' => '版本目录为空: ' . $apiVersion . '。请在 api/' . $apiVersion . '/ 下放置 handler 文件'
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
 
 if (!in_array($platform, $platforms, true)) {
     http_response_code(501);
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode([
         'success' => false,
-        'message' => '不支持的平台: ' . $platform . '。已注册: ' . implode(', ', $platforms)
+        'message' => $apiVersion . ' 不支持的平台: ' . $platform . '。可用: ' . implode(', ', $platforms)
     ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
-$handlerFile = $baseDir . '/api/V1/' . $platform . '.php';
+// 严格按版本目录找 handler，不 fallback
+$handlerFile = $versionDir . '/' . $platform . '.php';
 if (!file_exists($handlerFile)) {
     http_response_code(501);
     header('Content-Type: application/json; charset=utf-8');
-    echo json_encode(['success' => false, 'message' => '处理器不存在: ' . $platform . '.php'], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['success' => false, 'message' => '处理器不存在: ' . $apiVersion . '/' . $platform . '.php'], JSON_UNESCAPED_UNICODE);
     exit;
 }
+
+// force 参数（提前定义，供统计/限流/缓存全链路使用）
+$force = isset($_GET['force']) && $_GET['force'] === '1';
+
+// ============================================================
+// API 调用统计（轻量 JSON 计数器，不影响性能）
+// 按日聚合，支持按平台查看调用次数 / force=1 次数
+// 文件位置：cache/_api_stats.json
+// ============================================================
+$statsFile = $baseDir . '/cache/_api_stats.json';
+$todayKey  = date('Ymd');
+$stats = [];
+if (file_exists($statsFile)) {
+    $stats = json_decode(@file_get_contents($statsFile), true) ?: [];
+}
+if (!isset($stats[$todayKey])) $stats[$todayKey] = [];
+if (!isset($stats[$todayKey][$platform])) {
+    $stats[$todayKey][$platform] = ['hits' => 0, 'force' => 0];
+}
+$stats[$todayKey][$platform]['hits']++;
+if ($force) $stats[$todayKey][$platform]['force']++;
+// 保留最近 7 天，自动清理更老的数据
+if (count($stats) > 7) {
+    $oldKeys = array_keys($stats);
+    sort($oldKeys);
+    foreach (array_slice($oldKeys, 0, count($oldKeys) - 7) as $k) {
+        unset($stats[$k]);
+    }
+}
+@file_put_contents($statsFile, json_encode($stats, JSON_UNESCAPED_UNICODE), LOCK_EX);
+
+// ============================================================
+// 限流层 + 平台冷却（已移除本地 bypass，所有 IP 统一对待）
+// ============================================================
+$rateLimitPerMinute = 30;
+
+$lockDir = $baseDir . '/cache/_locks';
+if (!is_dir($lockDir)) {
+    @mkdir($lockDir, 0755, true);
+}
+$ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '127.0.0.1';
+$ipLockFile = $lockDir . '/ip_api_' . md5($ip) . '.json';
+
+$window = [];
+if (file_exists($ipLockFile)) {
+    $window = json_decode(@file_get_contents($ipLockFile), true) ?: [];
+}
+$window = array_values(array_filter($window, function ($t) { return $t > time() - 60; }));
+
+if (count($window) >= $rateLimitPerMinute) {
+    http_response_code(429);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'success' => false,
+        'message' => '请求过于频繁，请稍后再试（每分钟最多 ' . $rateLimitPerMinute . ' 次）',
+        'retry_after' => 60 - (time() - $window[0])
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+$window[] = time();
+@file_put_contents($ipLockFile, json_encode($window), LOCK_EX);
+
+// ============================================================
+// 平台冷却：force=1 时 15 秒内只能刷 1 次
+// ============================================================
+$cooldownSec = 15;
+$sourceLockFile = $lockDir . '/source_' . $platform . '_api.lock';
+
+if ($force) {
+    if (file_exists($sourceLockFile)) {
+        $last = (int)@file_get_contents($sourceLockFile);
+        if (time() - $last < $cooldownSec) {
+            http_response_code(429);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode([
+                'success' => false,
+                'message' => '强制刷新冷却中，请 ' . ($cooldownSec - (time() - $last)) . ' 秒后再试',
+                'retry_after' => $cooldownSec - (time() - $last)
+            ], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+    }
+    @file_put_contents($sourceLockFile, time(), LOCK_EX);
+}
+
+// ============================================================
+// 缓存层：force=1 跳过缓存直接爬虫，否则命中缓存就返回
+// ============================================================
+$archiveDir = rtrim(isset($GLOBALS['archive_dir']) ? $GLOBALS['archive_dir'] : (isset($GLOBALS['cache_dir']) ? $GLOBALS['cache_dir'] : ($baseDir . '/cache')), '/');
+$cacheTtl   = isset($GLOBALS['cache_ttl']) ? $GLOBALS['cache_ttl'] : (12 * 3600);
+$todayDir   = date('Ymd');
+$cacheFile  = $archiveDir . '/' . $todayDir . '/' . $platform . '.json';
+
+if (!$force && file_exists($cacheFile) && filemtime($cacheFile) >= time() - $cacheTtl) {
+    header('Content-Type: application/json; charset=utf-8');
+    header('X-Cache: HIT');
+    header('X-Cache-Age: ' . (time() - filemtime($cacheFile)) . 's');
+
+    // fetcher 写的缓存外层有 captured_at/date 壳，需要剥离后再输出 handler 原始格式
+    // 这样 debug.js 和其他调用方看到的格式统一：{success, data, title, ...}
+    $raw = file_get_contents($cacheFile);
+    $cache = json_decode($raw, true);
+    if ($cache && isset($cache['captured_at']) && isset($cache['data']) && is_array($cache['data'])) {
+        // fetcher 格式：外层 captured_at + date + data(handler 原始 JSON)
+        echo json_encode($cache['data'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    } else {
+        // 可能是 api 自己 force=1 写的（直接就是 handler 格式，没外层壳）
+        echo $raw;
+    }
+    exit;
+}
+header('X-Cache: MISS' . ($force ? ' (forced)' : ''));
 
 require_once $handlerFile;
 // 支持下划线分隔的命名，如 zhihu_daily → ZhihuDailyHotSearch
@@ -140,8 +283,17 @@ $limit = max($minLimit, min($maxLimit, $limit));
 try {
     $instance = new $className();
     $result = $instance->handle($limit);
+    $json = json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+    // 爬成功后写回今日缓存（不管 force 还是过期重爬）
+    if (!empty($result['success'])) {
+        $dir = dirname($cacheFile);
+        if (!is_dir($dir)) { @mkdir($dir, 0755, true); }
+        @file_put_contents($cacheFile, $json, LOCK_EX);
+    }
+
     header('Content-Type: application/json; charset=utf-8');
-    echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    echo $json;
 } catch (Throwable $e) {
     http_response_code(500);
     header('Content-Type: application/json; charset=utf-8');

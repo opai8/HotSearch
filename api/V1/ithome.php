@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * IT之家热榜处理器
  * 数据来源: https://m.ithome.com/rankm/
@@ -91,15 +91,12 @@ class IthomeHotSearch {
             "User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
             "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         );
-        $ch = curl_init();
+        $ch = smartCurlInit();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array_merge($defaultHeaders, $headers));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_ENCODING, 'gzip,deflate');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-        $output = curl_exec($ch);
+        $output = smartCurlExec($ch, 'ithome');
         curl_close($ch);
         return $output ?: '';
     }

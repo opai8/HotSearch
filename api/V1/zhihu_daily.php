@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * 知乎日报处理器（使用官方API）
  *
@@ -71,17 +71,14 @@ class ZhihuDailyHotSearch {
             "Referer: https://daily.zhihu.com/"
         );
 
-        $ch = curl_init();
+        $ch = smartCurlInit();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_ENCODING, 'gzip,deflate');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 
-        $output = curl_exec($ch);
+        $output = smartCurlExec($ch, 'zhihu_daily');
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 

@@ -1,6 +1,7 @@
-/**
- * 平台详情页样式（日间模式）
+﻿/**
+ * 平台详情页样式
  * 对应页面：platform.php
+ * 包含：正常模式 + 夜间模式 + 响应式（一个文件看全）
  */
 
 /* ---------- 容器 ---------- */
@@ -13,7 +14,7 @@
 /* ---------- 面包屑 ---------- */
 .platform-breadcrumb {
     font-size: 13px;
-    color: #888;
+    color: #888888;
     margin-bottom: 16px;
 }
 .platform-breadcrumb a {
@@ -26,12 +27,12 @@
 
 /* ---------- Hero 头部 ---------- */
 .platform-hero {
-    background: #fff;
-    border-radius: 10px;
+    background: #ffffff;
+    border-radius: 12px;
     padding: 20px 24px;
     margin-bottom: 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    border: 1px solid #f0f0f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e8e0e4;
     display: flex;
     align-items: center;
     gap: 16px;
@@ -41,7 +42,7 @@
     width: 48px;
     height: 48px;
     border-radius: 10px;
-    background: #f5f7fa;
+    background: #f2eaf0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -57,7 +58,7 @@
 .platform-hero .hero-title {
     font-size: 20px;
     font-weight: 600;
-    color: #1a1a1a;
+    color: #1f2937;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -65,15 +66,15 @@
 }
 .platform-hero .hero-date {
     font-size: 12px;
-    color: #888;
-    background: #f5f5f5;
+    color: #6b5f66;
+    background: #f2eaf0;
     padding: 2px 10px;
     border-radius: 20px;
     font-weight: normal;
 }
 .platform-hero .hero-meta {
     font-size: 12px;
-    color: #999;
+    color: #6b7280;
     margin-top: 6px;
 }
 .platform-hero .hero-actions {
@@ -86,9 +87,9 @@
     padding: 6px 14px;
     border-radius: 6px;
     text-decoration: none;
-    border: 1px solid #e0e0e0;
-    background: #fff;
-    color: #666;
+    border: 1px solid #e2d8de;
+    background: #ffffff;
+    color: #6b5f66;
     cursor: pointer;
     transition: all 0.2s;
     font-family: inherit;
@@ -101,10 +102,10 @@
 
 /* ---------- 热搜列表卡片 ---------- */
 .detail-card {
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    border: 1px solid #f0f0f0;
+    background: #f2eaf0;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #d9cfd4;
     overflow: hidden;
 }
 .detail-card .hot-list {
@@ -114,7 +115,7 @@
 }
 .detail-card .hot-item {
     padding: 14px 20px;
-    border-bottom: 1px solid #f5f5f5;
+    border-bottom: 1px solid #d4c9ce;
     cursor: pointer;
     transition: background 0.15s;
     display: flex;
@@ -124,7 +125,7 @@
     border-bottom: none;
 }
 .detail-card .hot-item:hover {
-    background: #fafafa;
+    background: #ffffff;
 }
 .detail-card .rank {
     width: 26px;
@@ -144,10 +145,272 @@
 .detail-error,
 .detail-empty {
     text-align: center;
-    padding: 60px 20px;
-    color: #999;
+    padding: 50px 24px;
+    color: #9ca3af;
+    background: linear-gradient(180deg, #f2eaf0 0%, #ffffff 100%);
 }
-.detail-error { color: #ff4d4f; }
+.detail-error { color: #ff4d4f; background: linear-gradient(180deg, #fef2f2 0%, #fff5f5 100%); }
+
+.detail-msg {
+    margin-top: 14px;
+    font-size: 15px;
+    color: #374151;
+    font-weight: 500;
+}
+.detail-error .detail-msg { color: #b91c1c; }
+
+.detail-actions {
+    margin-top: 24px;
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.detail-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 24px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+    line-height: 1.4;
+    cursor: pointer;
+}
+.detail-btn .iconfont { font-size: 14px; }
+
+/* 主按钮 — 紫色渐变，呼应品牌色 */
+.detail-btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    border: none;
+    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.35);
+}
+.detail-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.45);
+    color: #ffffff;
+}
+.detail-btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+}
+
+/* 次按钮 — 纯描边 + 纯白底 */
+.detail-btn-secondary {
+    background: #ffffff;
+    color: #4b4046;
+    border: 1px solid #e2d8de;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.detail-btn-secondary:hover {
+    border-color: #667eea;
+    color: #4f46e5;
+    background: #f5eff3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.15);
+}
+
+.detail-error .detail-btn-secondary {
+    color: #ff4d4f;
+    border-color: #ffccc7;
+    background: #ffffff;
+}
+.detail-error .detail-btn-secondary:hover {
+    background: #fff1f0;
+    border-color: #ff4d4f;
+    box-shadow: 0 4px 10px rgba(255, 77, 79, 0.15);
+}
+
+/* ============================================================
+   夜间模式覆盖（和上面的正常模式挨着写，方便对照维护）
+   ============================================================ */
+
+/* Hero + 详情卡片 */
+body[data-theme='dark'] .platform-hero,
+body[data-theme='dark'] .detail-card {
+    background: #1f1f1f;
+    border-color: #303030;
+}
+body[data-theme='dark'] .platform-hero .hero-icon {
+    background: #2a2a2a;
+}
+body[data-theme='dark'] .platform-hero .hero-title {
+    color: #eeeeee;
+}
+body[data-theme='dark'] .platform-hero .hero-date {
+    background: #303030;
+    color: #aaaaaa;
+}
+
+/* 热搜列表 */
+body[data-theme='dark'] .detail-card .hot-item {
+    border-bottom-color: #2a2a2a;
+}
+body[data-theme='dark'] .detail-card .hot-item:hover {
+    background: #252525;
+}
+
+/* Hero 操作按钮 */
+body[data-theme='dark'] .platform-hero .hero-actions a,
+body[data-theme='dark'] .platform-hero .hero-actions button {
+    background: #2a2a2a;
+    border-color: #404040;
+    color: #bbbbbb;
+}
+body[data-theme='dark'] .platform-hero .hero-actions a:hover,
+body[data-theme='dark'] .platform-hero .hero-actions button:hover {
+    border-color: #667eea;
+    color: #ffffff;
+}
+
+/* 空状态 / 错误状态 */
+body[data-theme='dark'] .detail-error,
+body[data-theme='dark'] .detail-empty {
+    background: linear-gradient(180deg, #222222 0%, #1f1f1f 100%);
+    color: #888888;
+}
+body[data-theme='dark'] .detail-error {
+    background: linear-gradient(180deg, #2a1a1a 0%, #1f1f1f 100%);
+    color: #ff7875;
+}
+body[data-theme='dark'] .detail-empty .detail-msg { color: #aaaaaa; }
+body[data-theme='dark'] .detail-error .detail-msg { color: #ffa39e; }
+
+/* 按钮 */
+body[data-theme='dark'] .detail-btn-secondary {
+    background: #2a2a2a;
+    color: #bbbbbb;
+    border-color: #404040;
+}
+body[data-theme='dark'] .detail-btn-secondary:hover {
+    background: #333333;
+    border-color: #667eea;
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.25);
+}
+body[data-theme='dark'] .detail-error .detail-btn-secondary {
+    color: #ffa39e;
+    border-color: #58181c;
+    background: #2a1a1a;
+}
+body[data-theme='dark'] .detail-error .detail-btn-secondary:hover {
+    background: #361a1a;
+    border-color: #ff7875;
+    box-shadow: 0 4px 10px rgba(255, 120, 117, 0.2);
+}
+
+/* ---------- 最近 7 天快速跳转条 + 全部历史链接 ---------- */
+.platform-recent-nav {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-top: 16px;
+    border: 1px solid #ece4e8;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.recent-nav-label {
+    font-size: 12px;
+    color: #9a8f96;
+    flex-shrink: 0;
+}
+.recent-nav-days {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    flex: 1;
+}
+.recent-day {
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 14px;
+    text-decoration: none;
+    background: #faf6f8;
+    color: #5a4f56;
+    border: 1px solid #ece4e8;
+    transition: all 0.15s;
+}
+.recent-day:hover {
+    background: #8a4fff;
+    color: #ffffff;
+    border-color: #8a4fff;
+}
+.recent-day.is-current {
+    background: #8a4fff;
+    color: #ffffff;
+    border-color: #8a4fff;
+    cursor: default;
+}
+.recent-archive-link {
+    font-size: 12px;
+    color: #8a4fff;
+    text-decoration: none;
+    flex-shrink: 0;
+    padding: 4px 10px;
+}
+.recent-archive-link:hover { text-decoration: underline; }
+
+/* 夜间模式 */
+body[data-theme='dark'] .platform-recent-nav { background: #1e1e2e; border-color: #2d2a33; }
+body[data-theme='dark'] .recent-day { background: #25222c; color: #d4c9ce; border-color: #2d2a33; }
+body[data-theme='dark'] .recent-day:hover { background: #8a4fff; color: #ffffff; border-color: #8a4fff; }
+body[data-theme='dark'] .recent-day.is-current { background: #8a4fff; color: #ffffff; border-color: #8a4fff; }
+body[data-theme='dark'] .recent-nav-label { color: #9a8f96; }
+body[data-theme='dark'] .recent-archive-link { color: #b89aff; }
+
+/* ---------- 完整榜单 h2 副标题 ---------- */
+.detail-section-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #3d343b;
+    margin: 0;
+    padding: 12px 20px 10px;
+    letter-spacing: 1px;
+    border-bottom: 1px dashed #d4c9ce;
+}
+.detail-section-title::before,
+.detail-section-title::after {
+    content: '';
+    flex: 0 1 auto;
+    width: 40px;
+    height: 1px;
+    background: #d4c9ce;
+}
+.detail-section-title::before {
+    background: linear-gradient(to right, transparent, #d4c9ce);
+}
+.detail-section-title::after {
+    background: linear-gradient(to left, transparent, #d4c9ce);
+}
+.detail-section-title .iconfont {
+    font-size: 14px;
+    color: #8a4fff;
+}
+body[data-theme='dark'] .detail-section-title {
+    color: #d4c9ce;
+    border-bottom-color: #3a3440;
+}
+body[data-theme='dark'] .detail-section-title::before {
+    background: linear-gradient(to right, transparent, #3a3440);
+}
+body[data-theme='dark'] .detail-section-title::after {
+    background: linear-gradient(to left, transparent, #3a3440);
+}
+body[data-theme='dark'] .detail-section-title .iconfont {
+    color: #b89aff;
+}
 
 /* ---------- 移动端适配 ---------- */
 @media (max-width: 768px) {
@@ -167,4 +430,96 @@
     .detail-card .rank { width: 22px; height: 22px; font-size: 11px; margin-right: 10px; }
     .detail-card .hot-title { font-size: 13px; }
     .detail-card .hot-heat { font-size: 11px; }
+}
+
+/* ---------- 小屏手机适配（< 480px，如 iPhone SE） ---------- */
+@media (max-width: 480px) {
+    /* 快速切换条：改成纵向 label 在上，日期横向滚动 */
+    .platform-recent-nav {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        padding: 10px 12px;
+    }
+    .recent-nav-label { font-size: 11px; }
+    /* 日期区域：不折行，横向滚动（日期多了也整齐） */
+    .recent-nav-days {
+        flex: none;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 6px;
+        padding-bottom: 2px;
+        /* 隐藏滚动条但保留滚动能力 */
+        scrollbar-width: none;          /* Firefox */
+        -ms-overflow-style: none;       /* IE/Edge */
+    }
+    .recent-nav-days::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+    .recent-day { flex-shrink: 0; }   /* 不压缩，保持完整大小 */
+    .recent-archive-link {
+        align-self: flex-end;
+        font-size: 11px;
+        padding: 2px 8px;
+    }
+}
+
+/* ============================================================
+   内联 style 搬迁（platform.php 直接用 class，干净无内联）
+   ============================================================ */
+
+/* 面包屑 › 分隔符 */
+.breadcrumb-sep { margin: 0 6px; }
+
+/* 历史存档提示条 */
+.platform-history-tip {
+    background: #fff8e6;
+    border-radius: 6px;
+    padding: 10px 14px;
+    color: #a86c00;
+    border: 1px solid #ffe58f;
+    margin-bottom: 14px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    line-height: 1.5;
+}
+.history-tip-icon { font-size: 14px; margin-right: 6px; flex-shrink: 0; }
+.history-tip-link { margin-left: 8px; color: inherit; text-decoration: underline; }
+
+/* hero 区域历史存档标签 */
+.history-archive-badge {
+    font-size: 11px;
+    color: #a86c00;
+    background: #fff8e6;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-weight: normal;
+}
+
+/* hero 区域小图标（统一 12px + 3px 右距） */
+.hero-meta-icon,
+.hero-action-icon,
+.recent-nav-icon { font-size: 12px; margin-right: 3px; }
+
+/* 榜单内火热度图标 */
+.fire-icon { font-size: 12px; margin-right: 2px; }
+
+/* 全部历史链接图标 */
+.archive-link-icon { font-size: 12px; margin-right: 2px; }
+
+/* 空状态 + 错误状态大图标 */
+.detail-empty-icon { font-size: 40px; }
+.detail-error-icon { font-size: 32px; }
+
+/* 耗时闪电（与 style.css 同定义，platform.php 内也用到） */
+.gen-time-bolt { font-size: 12px; vertical-align: middle; margin-right: 2px; }
+
+/* 夜间模式：历史存档提示条 */
+body[data-theme='dark'] .platform-history-tip {
+    background: #3a3420;
+    border-color: #5a4c30;
+    color: #e8c766;
+}
+body[data-theme='dark'] .history-archive-badge {
+    color: #e8c766;
+    background: #3a3420;
 }

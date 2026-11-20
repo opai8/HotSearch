@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * 百度热搜API处理器
  */
@@ -101,17 +101,14 @@ class BaiduHotSearch {
         $header[] = "CLIENT-IP:" . $ip;
         $header[] = "X-FORWARDED-FOR:" . $ip;
         
-        $ch = curl_init();
+        $ch = smartCurlInit();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_ENCODING, 'gzip,deflate');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         
-        $output = curl_exec($ch);
+        $output = smartCurlExec($ch, 'baidu');
         curl_close($ch);
         
         return $output;

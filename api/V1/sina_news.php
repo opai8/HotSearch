@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * 新浪新闻热点榜处理器
  * 数据来源: https://top.news.sina.com.cn/ws/GetTopDataList.php
@@ -62,15 +62,12 @@ class SinaNewsHotSearch {
             "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Accept: */*"
         );
-        $ch = curl_init();
+        $ch = smartCurlInit();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_ENCODING, 'gzip,deflate');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-        $output = curl_exec($ch);
+        $output = smartCurlExec($ch, 'sina_news');
         curl_close($ch);
         return $output ?: '';
     }

@@ -61,39 +61,6 @@
         padding: 0 10px 16px;
     }
 
-    /* ---------- 分类 Tab 栏 ---------- */
-    .category-tabs {
-        padding: 0 10px;
-        margin-top: 10px;
-        gap: 6px;
-    }
-    .category-tab {
-        padding: 6px 11px;
-        font-size: 12px;
-        border-radius: 16px;
-    }
-    .category-tab-icon {
-        font-size: 13px;
-    }
-    .category-tab-count {
-        font-size: 10px;
-        padding: 0 5px;
-    }
-
-    /* ---------- 分类分组标题 ---------- */
-    .category-title {
-        font-size: 16px;
-        margin: 16px 0 10px;
-        padding-bottom: 6px;
-    }
-    .category-icon {
-        font-size: 17px;
-    }
-    .category-count {
-        font-size: 11px;
-        padding: 1px 7px;
-    }
-
     /* ---------- 热搜网格 - 强制单列 ---------- */
     .hot-grid {
         grid-template-columns: 1fr !important;
@@ -104,18 +71,18 @@
     /* ---------- 卡片 ---------- */
     .hot-card {
         margin-bottom: 0;
-        height: 480px;
         border-radius: 10px;
+        height: 500px;   /* 移动端固定高度 */
     }
 
     .card-header {
-        padding: 8px 12px;
+        padding: 10px 12px;
         flex-wrap: wrap;
         gap: 6px;
     }
 
     .card-title {
-        font-size: 14px;
+        font-size: 15px;
         gap: 6px;
     }
 
@@ -125,22 +92,22 @@
     }
 
     .card-tag {
-        font-size: 10px;
-        padding: 1px 6px;
+        font-size: 12px;
+        padding: 2px 8px;
     }
 
     .card-source-link {
-        font-size: 10px;
-        padding: 2px 6px;
+        font-size: 12px;
+        padding: 2px 8px;
     }
 
     .card-body {
-        padding: 2px 0 0 0;
+        padding: 0;
     }
 
     /* ---------- 热搜列表 ---------- */
     .hot-item {
-        padding: 8px 12px;
+        padding: 4px 12px;
     }
 
     .rank {
@@ -162,13 +129,13 @@
     /* ---------- 展开/折叠条 ---------- */
     .hot-item-expand,
     .hot-item-footer {
-        padding: 8px 12px;
+        padding: 4px 12px;
     }
 
     .rank-expand {
-        width: 16px;
-        height: 16px;
-        font-size: 11px;
+        width: 20px;
+        height: 20px;
+        font-size: 12px;
         margin-right: 8px;
     }
 
@@ -184,7 +151,7 @@
 
     /* ---------- 卡片底部 ---------- */
     .card-footer {
-        padding: 6px 12px;
+        padding: 8px 12px;
         flex-wrap: wrap;
         gap: 6px;
     }
@@ -193,17 +160,23 @@
         font-size: 11px;
     }
 
-    .refresh-btn {
-        padding: 3px 10px;
-        font-size: 11px;
-    }
-
     .refresh-btn::before {
-        font-size: 12px;
+        font-size: 13px;
         margin-right: 3px;
     }
 
-    /* ---------- 通知栏（见 notice-bar-responsive.css）---------- */
+    /* ---------- 通知栏 ---------- */
+    .notice-bar {
+        margin: 12px 10px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .notice-icon { font-size: 16px; }
+    .notice-content { font-size: 12px; line-height: 1.5; }
+    .notice-extra { width: 100%; justify-content: flex-end; }
+    .notice-extra .test-link { padding: 5px 10px; font-size: 12px; }
 
     /* ---------- 回到顶部按钮 ---------- */
     .back-to-top {
@@ -261,11 +234,12 @@
     }
 
     .hot-card {
-        height: 440px;
+        border-radius: 10px;
+        height: 460px;   /* 小屏手机固定高度 */
     }
 
     .hot-item {
-        padding: 7px 10px;
+        padding: 3px 10px;
     }
 
     .hot-title {
@@ -275,6 +249,12 @@
     .main-content {
         padding: 0 8px 12px;
     }
+
+    .notice-bar {
+        margin: 10px 8px;
+        padding: 8px 10px;
+    }
+    .notice-content { font-size: 11px; }
 }
 
 
@@ -296,16 +276,60 @@
     }
 
     .hot-card {
-        height: 420px;
+        border-radius: 10px;
+        height: 440px;   /* 平板固定高度 */
     }
 
     .card-header {
-        padding: 9px 14px;
+        padding: 10px 14px;
+    }
+
+    .card-tag {
+        font-size: 12px;
+        padding: 3px 10px;
+    }
+
+    .card-source-link {
+        font-size: 12px;
+        padding: 3px 10px;
+    }
+
+    .card-footer {
+        padding: 8px 14px;
+    }
+
+    .refresh-btn {
+        font-size: 13px;
+        padding: 2px 9px;
+    }
+
+    .refresh-btn::before {
+        font-size: 14px;
+    }
+
+    .update-time {
+        font-size: 12px;
     }
 
     .hot-item {
-        padding: 6px 14px;
+        padding: 4px 14px;
     }
+
+    .hot-item-expand,
+    .hot-item-footer {
+        padding: 4px 14px;
+    }
+
+    .expand-title {
+        font-size: 12px;
+    }
+
+    .expand-arrow {
+        font-size: 10px;
+        padding: 1px 6px;
+    }
+
+    .notice-bar { margin: 15px 20px; }
 }
 
 
@@ -316,4 +340,6 @@
     .hot-grid {
         max-width: 1600px;
     }
+
+    .notice-bar { max-width: 1600px; }
 }

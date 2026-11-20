@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * 少数派处理器（使用官方API）
  *
@@ -45,7 +45,7 @@ class SspaiHotSearch {
                     'index' => count($items) + 1,
                     'title' => $title,
                     'url'   => 'https://sspai.com/post/' . $id,
-                    'hot'   => $likes ? ($likes . ' 👍') : '',
+                    'hot'   => is_numeric($likes) ? number_format($likes) : ($likes ?: ''),
                     'desc'  => isset($v['summary']) ? $v['summary'] : '',
                     'pic'   => isset($v['banner']) ? $v['banner'] : ''
                 );
@@ -72,16 +72,13 @@ class SspaiHotSearch {
             "Referer: https://sspai.com/"
         );
 
-        $ch = curl_init();
+        $ch = smartCurlInit();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_ENCODING, 'gzip,deflate');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
 
-        $output = curl_exec($ch);
+        $output = smartCurlExec($ch, 'sspai');
         curl_close($ch);
 
         return $output ?: '';

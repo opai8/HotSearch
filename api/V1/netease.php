@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * 网易云音乐 - 热歌榜
  * 数据源: https://music.163.com/api/playlist/detail?id=3778678
@@ -19,14 +19,12 @@ class NeteaseHotSearch {
                 'Referer: https://music.163.com/',
             );
 
-            $ch = curl_init($url);
+            $ch = smartCurlInit();
+            curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
             curl_setopt($ch, CURLOPT_ENCODING, '');
-            $json = curl_exec($ch);
+            $json = smartCurlExec($ch, 'netease');
             curl_close($ch);
 
             if (!$json) return array('success' => false, 'message' => '请求失败');
@@ -57,8 +55,8 @@ class NeteaseHotSearch {
                     'index' => $idx + 1,
                     'title' => $name,
                     'url'   => $url,
-                    'hot'   => $artist,
-                    'desc'  => $album,
+                    'hot'   => '',
+                    'desc'  => $artist . ($album ? ' · ' . $album : ''),
                     'pic'   => $t['al']['picUrl'] ?? '',
                 );
             }

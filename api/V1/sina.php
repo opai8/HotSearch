@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * 新浪热榜处理器（移动端 API，区别于已有的 sina_news）
  * 数据来源: https://newsapp.sina.cn/api/hotlist
@@ -67,15 +67,12 @@ class SinaHotSearch {
             "Accept: application/json, text/plain, */*",
             "Referer: https://newsapp.sina.cn/"
         );
-        $ch = curl_init();
+        $ch = smartCurlInit();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array_merge($defaultHeaders, $headers));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_ENCODING, 'gzip,deflate');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-        $output = curl_exec($ch);
+        $output = smartCurlExec($ch, 'sina');
         curl_close($ch);
         return $output ?: '';
     }

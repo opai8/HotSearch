@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * 百度贴吧热议处理器（使用官方API）
  *
@@ -52,7 +52,7 @@ class TiebaHotSearch {
                     'index' => count($items) + 1,
                     'title' => $title,
                     'url'   => $url ?: 'https://tieba.baidu.com/hottopic/browse/topicList',
-                    'hot'   => $hot ? ($hot . ' 讨论') : '',
+                    'hot'   => $hot,
                     'desc'  => '',
                     'pic'   => isset($v['topic_pic']) ? $v['topic_pic'] : ''
                 );
@@ -79,16 +79,13 @@ class TiebaHotSearch {
             "Referer: https://tieba.baidu.com/"
         );
 
-        $ch = curl_init();
+        $ch = smartCurlInit();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_ENCODING, 'gzip,deflate');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
 
-        $output = curl_exec($ch);
+        $output = smartCurlExec($ch, 'tieba');
         curl_close($ch);
 
         return $output ?: '';

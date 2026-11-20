@@ -62,14 +62,18 @@ $home_url = '/';
         </p>
         <div class="error-buttons">
             <a href="<?php echo $home_url; ?>" class="error-btn error-btn-primary">
-                <span class="iconfont icon-shouye" style="font-size: 16px;"></span>
+                <span class="iconfont icon-shouye error-btn-icon"></span>
                 返回首页
             </a>
             <button onclick="history.back()" class="error-btn error-btn-secondary">
-                <span class="iconfont icon-fanhui" style="font-size: 16px;"></span>
+                <span class="iconfont icon-fanhui error-btn-icon"></span>
                 返回上一页
             </button>
         </div>
+        <!-- 给爬虫和用户都留一条找回路径 -->
+        <p class="error-tail-tip">
+            没找到想找的？可以去 <a href="/sitemap" class="error-sitemap-link">网站地图</a> 看看全部页面
+        </p>
     </div>
 
 </body>

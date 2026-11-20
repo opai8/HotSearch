@@ -47,7 +47,6 @@ $weekDay = ['星期日', '星期一', '星期二', '星期三', '星期四', '�
     // 允许页面（如 platform.php、status.php）提前设置 SEO 变量覆盖默认值
     $seoTitle     = isset($pageTitle)     ? $pageTitle     : ($cfg['site_name'] . ' - ' . $cfg['site_desc']);
     $seoDesc      = isset($pageDesc)      ? $pageDesc      : $cfg['seo_description'];
-    $seoKeywords  = isset($pageKeywords)  ? $pageKeywords  : $cfg['seo_keywords'];
     $seoRobots    = isset($pageRobots)    ? $pageRobots    : 'index, follow';
     $seoCanonical = isset($canonical)     ? $canonical     : ($cfg['seo_domain'] . '/');
     $seoOgType    = isset($pageOgType)    ? $pageOgType    : $cfg['seo_type'];
@@ -57,16 +56,19 @@ $weekDay = ['星期日', '星期一', '星期二', '星期三', '星期四', '�
     <title><?php echo escapeHtml($seoTitle); ?></title>
     <!-- SEO：网站描述 -->
     <meta name="description" content="<?php echo escapeHtml($seoDesc); ?>">
-    <!-- SEO：网站关键词 -->
-    <meta name="keywords" content="<?php echo escapeHtml($seoKeywords); ?>">
+
     <!-- SEO：作者 -->
     <meta name="author" content="<?php echo escapeHtml($cfg['site_name']); ?>">
     <!-- SEO：robots（运维页面如 status.php 会覆盖为 noindex, nofollow） -->
     <meta name="robots" content="<?php echo $seoRobots; ?>">
     <!-- SEO：Canonical 标签 -->
     <link rel="canonical" href="<?php echo $seoCanonical; ?>">
-    <!-- favicon -->
-    <link rel="icon" type="image/png" href="<?php echo escapeHtml($cfg['site_favicon']); ?>">
+    <!-- favicon / 主屏图标 -->
+    <link rel="icon" type="image/x-icon" href="/assets/images/favicon.ico">
+    <link rel="icon" type="image/png" sizes="64x64" href="/assets/images/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/assets/images/android-chrome-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/assets/images/android-chrome-512.png">
 
     <!-- DNS 预解析：提前解析热门平台域名，减少点击跳转时的等待 -->
     <link rel="dns-prefetch" href="//top.baidu.com">
@@ -90,6 +92,8 @@ $weekDay = ['星期日', '星期一', '星期二', '星期三', '星期四', '�
     <meta property="og:url" content="<?php echo $seoOgUrl; ?>">
     <meta property="og:site_name" content="<?php echo escapeHtml($cfg['site_name']); ?>">
     <meta property="og:image" content="<?php echo $cfg['seo_domain']; ?><?php echo escapeHtml($cfg['seo_og_image']); ?>">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta property="og:locale" content="zh_CN">
 
     <!-- ============================================================
@@ -128,6 +132,30 @@ $weekDay = ['星期日', '星期一', '星期二', '星期三', '星期四', '�
         }
     }
     </script>
+    <?php
+    // 首页用 CollectionPage（无层级，面包屑没意义），其他页保留 BreadcrumbList
+    // 如果页面提前设置了 $breadcrumbJsonLd，用那份覆盖默认 2 层模板（archive.php 用 3 层精确版）
+    $isHomePage = (basename($_SERVER['PHP_SELF']) === 'index.php' || rtrim($cfg['seo_domain'] . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '/'), '/') === rtrim($cfg['seo_domain'], '/'));
+    ?>
+    <?php if ($isHomePage): ?>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "<?php echo escapeHtml($cfg['site_name']); ?> - 多平台实时热点聚合",
+        "url": "<?php echo $cfg['seo_domain']; ?>/",
+        "description": "<?php echo escapeHtml($cfg['seo_description']); ?>",
+        "inLanguage": "zh-CN",
+        "isPartOf": {
+            "@type": "WebSite",
+            "name": "<?php echo escapeHtml($cfg['site_name']); ?>",
+            "url": "<?php echo $cfg['seo_domain']; ?>/"
+        }
+    }
+    </script>
+    <?php elseif (!empty($breadcrumbJsonLd)): ?>
+    <?php echo $breadcrumbJsonLd; /* 页面自定义的 BreadcrumbList（如 archive.php 的 3 层版本） */ ?>
+    <?php else: ?>
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -148,18 +176,21 @@ $weekDay = ['星期日', '星期一', '星期二', '星期三', '星期四', '�
         ]
     }
     </script>
+    <?php endif; ?>
 
-    <!-- 图标字体 -->
+    <!-- 图标字体 + preload（URL 必须与 iconfont.css 里 @font-face 完全一致） -->
+    <link rel="preload" href="/assets/iconfont/iconfont.woff2" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="stylesheet" href="/assets/iconfont/iconfont.css">
     <!-- 主样式 -->
-    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/style.css?v=20261114d">
     <!-- 夜间模式样式 -->
     <link rel="stylesheet" href="/assets/css/theme-dark.css">
     <!-- 响应式布局 -->
-    <link rel="stylesheet" href="/assets/css/responsive.css">
+    <link rel="stylesheet" href="/assets/css/responsive.css?v=20261114d">
     <!-- 平台图标颜色 -->
     <link rel="stylesheet" href="/assets/css/icon-color.css">
-    <!-- Toast 工具（最先加载，其他 JS 可能用到） -->
+    <!-- Toast 工具：不用 defer，因为 platform.php/status.php 底部有内联 script 依赖 showToast，
+         defer 会导致内联 script 先执行而 showToast 还没定义。文件很小（~25 行），不阻塞渲染。 -->
     <script src="/assets/js/toast.js"></script>
     <script>
         // 新手提示：默认主题从配置读取，在 CSS 加载前就设置，避免页面闪烁
@@ -176,6 +207,21 @@ $weekDay = ['星期日', '星期一', '星期二', '星期三', '星期四', '�
 
         // 热搜链接打开方式（从 config 读取）
         var LINK_TARGET = '<?php echo getLinkTarget(); ?>';
+
+        // 完整卡片数据（用于展开全部、DISPLAY_LIMIT 判断真实总数）
+        // 必须在 script.js 之前注入，否则 applyUserSettings 里读不到真实总数
+        window.__HOTCC_CARD_DATA__ = <?php echo isset($cardDataJson) ? $cardDataJson : '{}'; ?>;
+
+        // PHP 权威默认值 — 让 JS 有单一事实来源，不硬编码
+        var PHP_CONFIG_DEFAULTS = {
+            columns_per_row:      '<?php echo $cfg['columns_per_row']; ?>',
+            card_min_width:       <?php echo (int)$cfg['card_min_width']; ?>,
+            display_limit:         <?php echo (int)$cfg['display_limit']; ?>,
+            show_heat:            <?php echo !empty($cfg['show_heat']) ? 'true' : 'false'; ?>,
+            show_source:          <?php echo !empty($cfg['show_source_link']) ? 'true' : 'false'; ?>,
+            show_refresh:         <?php echo !empty($cfg['show_refresh_btn']) ? 'true' : 'false'; ?>,
+            link_open_new_window: '<?php echo !empty($cfg['link_open_new_window']) && $cfg['link_open_new_window'] === '_self' ? '_self' : '_blank'; ?>'
+        };
     </script>
 </head>
 <body>
@@ -205,7 +251,7 @@ $weekDay = ['星期日', '星期一', '星期二', '星期三', '星期四', '�
         </div>
         <div class="header-right">
             <?php if ($cfg['show_header_refresh']): ?>
-            <button class="header-icon-btn" id="headerRefreshBtn" title="刷新全部" onclick="location.reload()">
+            <button class="header-icon-btn" id="headerRefreshBtn" title="刷新全部数据（清除页面缓存）">
                 <span class="iconfont icon-yuanxunhuan"></span>
             </button>
             <?php endif; ?>
@@ -213,9 +259,9 @@ $weekDay = ['星期日', '星期一', '星期二', '星期三', '星期四', '�
                 <span class="iconfont icon-yejian"></span>
             </button>
             <?php if ($cfg['show_header_setting']): ?>
-            <button class="header-icon-btn" title="清理缓存" onclick="clearOpcache()">
+            <a href="/setting" class="header-icon-btn" title="个人设置">
                 <span class="iconfont icon-shezhi"></span>
-            </button>
+            </a>
             <?php endif; ?>
         </div>
     </header>

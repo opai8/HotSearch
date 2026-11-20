@@ -1,0 +1,463 @@
+/**
+ * Debug 调试面板样式（日间模式）
+ */
+
+.debug-wrap {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 60px);   /* header ~50px + body margin */
+    min-height: 600px;
+    box-sizing: border-box;
+    overflow: hidden;              /* 关键：外层不滚，内部各自滚 */
+}
+
+/* ---------- 顶部栏 ---------- */
+.debug-topbar {
+    background: #ffffff;
+    border: 1px solid #f0f0f0;
+    border-radius: 12px;
+    padding: 12px 20px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    flex-shrink: 0;                /* 顶部栏不参与压缩 */
+}
+.debug-title-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 6px;
+}
+.debug-logo {
+    font-size: 13px;
+    color: #888888;
+    text-decoration: none;
+    transition: color 0.15s;
+}
+.debug-logo:hover { color: #667eea; }
+.debug-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #222222;
+    flex: 1;
+}
+.debug-link {
+    font-size: 13px;
+    color: #1890ff;
+    text-decoration: none;
+}
+.debug-link:hover { text-decoration: underline; }
+.debug-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.debug-version-badge {
+    font-size: 12px;
+    color: #888888;
+    background: #f5f5f5;
+    padding: 4px 12px;
+    border-radius: 10px;
+}
+.debug-version-badge b { color: #667eea; }
+.debug-tip {
+    font-size: 12px;
+    color: #aaaaaa;
+}
+
+/* ---------- 主体 ---------- */
+.debug-body {
+    display: flex;
+    gap: 20px;
+    align-items: stretch;   /* 两侧等高 */
+    flex: 1;                /* 填满 topbar 之后的剩余空间 */
+    min-height: 0;          /* flex 子项要滚动的必要条件 */
+    overflow: hidden;
+}
+
+/* ---------- 左侧列表 ---------- */
+.debug-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    background: #ffffff;
+    border: 1px solid #f0f0f0;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+/* PC 端：列表 flex:1 填满 sidebar 剩余空间（sidebar-foot 固定） */
+@media (min-width: 901px) {
+    .debug-list {
+        flex: 1;
+        overflow-y: auto;
+        height: auto;      /* 覆盖之前的固定 height */
+    }
+}
+.debug-sidebar-head {
+    padding: 14px 16px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #444444;
+}
+.debug-count {
+    color: #999999;
+    font-weight: normal;
+}
+.debug-search {
+    margin: 0 12px 10px;
+    padding: 7px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s;
+}
+.debug-search:focus { border-color: #667eea; }
+.debug-list {
+    overflow-y: auto;
+    padding: 0 8px;
+}
+@media (max-width: 900px) {
+    .debug-list { flex: 1; }  /* 移动端恢复 flex 撑满 */
+}
+.debug-list::-webkit-scrollbar { width: 6px; }
+.debug-list::-webkit-scrollbar-thumb { background: #ddd; border-radius: 3px; }
+
+.debug-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.12s;
+    margin-bottom: 2px;
+    position: relative;
+}
+.debug-item:hover { background: #f8f9ff; }
+.debug-item.active { background: linear-gradient(135deg, rgba(102,126,234,0.12), rgba(118,75,162,0.12)); }
+.debug-item.active .debug-item-name { color: #667eea; }
+
+.debug-item-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+}
+.debug-item-info {
+    flex: 1;
+    min-width: 0;
+}
+.debug-item-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #333333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.debug-item-id {
+    font-size: 11px;
+    color: #aaaaaa;
+    font-family: "SF Mono", Consolas, monospace;
+}
+.debug-item-status {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.debug-item-status.none { background: #d9d9d9; }
+.debug-item-status.cache { background: #1890ff; }
+.debug-item-status.expired { background: #faad14; }
+.debug-item-status.testing { background: #1890ff; animation: pulse 1s infinite; }
+.debug-item-status.pass { background: #52c41a; }
+.debug-item-status.fail { background: #ff4d4f; }
+
+.debug-sidebar-foot {
+    padding: 12px;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    gap: 8px;
+}
+.debug-btn-mini {
+    flex: 1;
+    font-size: 12px;
+    padding: 6px 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #333333;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.12s;
+}
+.debug-btn-mini:hover { border-color: #667eea; color: #667eea; }
+.debug-btn-mini.debug-btn-danger:hover { border-color: #ff4d4f; color: #ff4d4f; }
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* ---------- 右侧详情 ---------- */
+.debug-main {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;          /* flex 子项要滚动的必要条件 */
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+}
+.debug-empty {
+    background: #ffffff;
+    border: 1px solid #f0f0f0;
+    border-radius: 12px;
+    height: 100%;
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #aaaaaa;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.debug-empty-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+}
+.debug-empty-text {
+    font-size: 14px;
+}
+
+.debug-detail {
+    background: #ffffff;
+    border: 1px solid #f0f0f0;
+    border-radius: 12px;
+    padding: 24px 28px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+/* 头部 */
+.debug-detail-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 18px;
+}
+.debug-detail-icon {
+    font-size: 28px;
+}
+.debug-detail-title {
+    flex: 1;
+}
+.debug-detail-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #222222;
+}
+.debug-detail-id {
+    font-size: 12px;
+    color: #aaaaaa;
+    font-family: "SF Mono", Consolas, monospace;
+}
+
+/* 缓存状态卡 */
+.debug-cache-card {
+    background: #fafafa;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 18px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+.debug-cache-card.has-data { background: linear-gradient(135deg, #f0f5ff 0%, #f9f0ff 100%); }
+.debug-cache-item-label {
+    font-size: 11px;
+    color: #999999;
+    margin-bottom: 4px;
+}
+.debug-cache-item-val {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333333;
+}
+.debug-cache-item-val.muted { color: #bbbbbb; font-weight: normal; }
+
+/* 操作栏 */
+.debug-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.debug-btn {
+    font-size: 13px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    background: #ffffff;
+    color: #333333;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+}
+.debug-btn:hover { border-color: #667eea; color: #667eea; }
+.debug-btn:active { transform: scale(0.97); }
+.debug-btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+    border-color: transparent;
+}
+.debug-btn-primary:hover { box-shadow: 0 2px 8px rgba(102,126,234,0.4); color: #ffffff; }
+.debug-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.debug-options-inline {
+    display: flex;
+    gap: 14px;
+    font-size: 13px;
+    color: #666666;
+    align-items: center;
+}
+.debug-options-inline label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+
+/* 测试结果 */
+.debug-result {
+    border-radius: 10px;
+    padding: 14px 18px;
+    min-height: 60px;
+    font-size: 13px;
+    line-height: 1.7;
+    background: #f9f9f9;
+    color: #666666;
+}
+.debug-result.testing { background: #e6f7ff; color: #1890ff; }
+.debug-result.pass { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
+.debug-result.fail { background: #fff2f0; color: #cf1322; border: 1px solid #ffccc7; }
+.debug-result pre {
+    margin: 8px 0 0;
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 11.5px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    background: rgba(0,0,0,0.04);
+    padding: 10px;
+    border-radius: 6px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* 响应式 */
+@media (max-width: 900px) {
+    .debug-body { flex-direction: column; }
+    .debug-sidebar { width: 100%; max-height: 300px; }
+    .debug-cache-card { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ============================================================
+   夜间模式 — body[data-theme='dark'] 覆盖
+   ============================================================ */
+body[data-theme='dark'] .debug-wrap { background: transparent; }
+body[data-theme='dark'] .debug-topbar {
+    background: #2a2a2a;
+    border-color: #3a3a3a;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+body[data-theme='dark'] .debug-title { color: #e8e8e8; }
+body[data-theme='dark'] .debug-logo { color: #888; }
+body[data-theme='dark'] .debug-logo:hover { color: #8b9cf7; }
+body[data-theme='dark'] .debug-link { color: #8b9cf7; }
+body[data-theme='dark'] .debug-version-badge {
+    background: #333;
+    color: #aaa;
+}
+body[data-theme='dark'] .debug-version-badge b { color: #8b9cf7; }
+body[data-theme='dark'] .debug-tip { color: #666; }
+
+body[data-theme='dark'] .debug-sidebar {
+    background: #2a2a2a;
+    border-color: #3a3a3a;
+}
+body[data-theme='dark'] .debug-sidebar-head { color: #b0b0b0; }
+body[data-theme='dark'] .debug-count { color: #555; }
+body[data-theme='dark'] .debug-search {
+    background: #333;
+    border-color: #4a4a4a;
+    color: #e8e8e8;
+}
+body[data-theme='dark'] .debug-search:focus { border-color: #667eea; }
+body[data-theme='dark'] .debug-list::-webkit-scrollbar-thumb { background: #444; }
+
+body[data-theme='dark'] .debug-item:hover { background: #333; }
+body[data-theme='dark'] .debug-item.active { background: linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2)); }
+body[data-theme='dark'] .debug-item.active .debug-item-name { color: #8b9cf7; }
+body[data-theme='dark'] .debug-item-name { color: #d0d0d0; }
+body[data-theme='dark'] .debug-item-id { color: #666; }
+body[data-theme='dark'] .debug-item-status.none { background: #555; }
+
+body[data-theme='dark'] .debug-sidebar-foot {
+    border-top-color: #3a3a3a;
+}
+body[data-theme='dark'] .debug-btn-mini {
+    background: #333;
+    border-color: #4a4a4a;
+    color: #d0d0d0;
+}
+body[data-theme='dark'] .debug-btn-mini:hover { border-color: #667eea; color: #8b9cf7; }
+body[data-theme='dark'] .debug-btn-mini.debug-btn-danger:hover { border-color: #ff4d4f; color: #ff7875; }
+
+body[data-theme='dark'] .debug-empty {
+    background: #2a2a2a;
+    border-color: #3a3a3a;
+    color: #666;
+}
+body[data-theme='dark'] .debug-detail {
+    background: #2a2a2a;
+    border-color: #3a3a3a;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+body[data-theme='dark'] .debug-detail-head { border-bottom-color: #3a3a3a; }
+body[data-theme='dark'] .debug-detail-name { color: #e8e8e8; }
+body[data-theme='dark'] .debug-detail-id { color: #666; }
+
+body[data-theme='dark'] .debug-cache-card {
+    background: #252525;
+}
+body[data-theme='dark'] .debug-cache-card.has-data {
+    background: linear-gradient(135deg, #1a2035 0%, #251a35 100%);
+}
+body[data-theme='dark'] .debug-cache-item-label { color: #666; }
+body[data-theme='dark'] .debug-cache-item-val { color: #d0d0d0; }
+body[data-theme='dark'] .debug-cache-item-val.muted { color: #555; }
+
+body[data-theme='dark'] .debug-btn {
+    background: #333;
+    border-color: #4a4a4a;
+    color: #d0d0d0;
+}
+body[data-theme='dark'] .debug-btn:hover { border-color: #667eea; color: #8b9cf7; }
+body[data-theme='dark'] .debug-btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+}
+
+body[data-theme='dark'] .debug-options-inline { color: #aaa; }
+body[data-theme='dark'] .debug-result {
+    background: #252525;
+    color: #b0b0b0;
+}
+body[data-theme='dark'] .debug-result pre {
+    background: rgba(255,255,255,0.04);
+    color: #d0d0d0;
+}
+body[data-theme='dark'] .debug-result.testing { background: #1a2535; color: #69c0ff; }
+body[data-theme='dark'] .debug-result.pass { background: #1a2a1a; color: #95de64; border-color: #389e0d; }
+body[data-theme='dark'] .debug-result.fail { background: #2a1a1a; color: #ff7875; border-color: #cf1322; }

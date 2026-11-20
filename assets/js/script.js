@@ -26,7 +26,48 @@
 // 配置区（新手：想改参数改这里就行）
 // ============================================================
 var API_LIMIT    = 100;   // 刷新时从 API 拉取的最大条数
-var DISPLAY_LIMIT = 10;   // 折叠状态下默认显示的条数
+
+// 优先用 PHP 注入的权威默认值，没有的话用硬编码兜底
+var PHP_DEF = typeof PHP_CONFIG_DEFAULTS !== 'undefined' ? PHP_CONFIG_DEFAULTS : {};
+
+// 从 localStorage 读用户设置
+function getUserSetting(key, fallback) {
+    try {
+        var raw = localStorage.getItem('hotcc_settings');
+        if (raw) {
+            var s = JSON.parse(raw);
+            if (s && key in s) return s[key];
+        }
+    } catch(e) {}
+    return fallback;
+}
+
+// 兜底优先级：PHP_CONFIG_DEFAULTS > 旧硬编码值
+var DISPLAY_LIMIT = getUserSetting('display_limit', PHP_DEF.display_limit || 10);
+var USER_COLUMNS    = getUserSetting('columns_per_row', PHP_DEF.columns_per_row || 'auto');
+var USER_SHOW_HEAT  = getUserSetting('show_heat', PHP_DEF.show_heat !== undefined ? PHP_DEF.show_heat : true);
+var USER_SHOW_SOURCE = getUserSetting('show_source', PHP_DEF.show_source !== undefined ? PHP_DEF.show_source : true);
+var USER_SHOW_REFRESH = getUserSetting('show_refresh', PHP_DEF.show_refresh !== undefined ? PHP_DEF.show_refresh : true);
+var USER_LINK_TARGET = getUserSetting('link_open_new_window', PHP_DEF.link_open_new_window || '_blank');
+
+
+// ============================================================
+// 提前注入完整卡片数据（解决 _allData 注入时序在 applyUserSettings 之后的 race condition）
+// header.php 已在 <head> 里输出 window.__HOTCC_CARD_DATA__，
+// script.js 在 footer.php 引入，此时 body 里的 .hot-card DOM 已由 PHP 渲染完毕，
+// 所以可以立即操作 DOM，不用等 DOMContentLoaded
+// ============================================================
+(function injectAllData() {
+    var CD = window.__HOTCC_CARD_DATA__;
+    if (!CD || typeof CD !== 'object') return;
+    var cards = document.querySelectorAll('.hot-card');
+    cards.forEach(function(card) {
+        var sid = card.getAttribute('data-source');
+        if (sid && CD[sid]) {
+            card._allData = CD[sid];
+        }
+    });
+})();
 
 
 // ============================================================
@@ -117,10 +158,12 @@ function renderHotItem(item, index) {
     else if (index === 1) rankClass = ' top2';
     else if (index === 2) rankClass = ' top3';
 
-    // 热度值（有的平台没有热度，就不显示）
-    var hotHtml = hot ? ('<span class="hot-heat"><span class="iconfont icon-xiaohuomiao" style="font-size:12px; margin-right:2px;"></span>' + escapeHtml(hot) + '</span>') : '';
+    // 热度值（用户设置关闭 or 没热度时就不显示）
+    var showHeat = typeof USER_SHOW_HEAT !== 'undefined' ? USER_SHOW_HEAT : true;
+    var hotHtml = (hot && showHeat) ? ('<span class="hot-heat"><span class="iconfont icon-xiaohuomiao" style="font-size:12px; margin-right:2px;"></span>' + escapeHtml(hot) + '</span>') : '';
 
-    return '<li class="hot-item" onclick="openHotLink(\'' + escapeHtml(url) + '\',\'_blank\')" data-tooltip="' + escapeHtml(title) + '">'
+    var linkTarget = (typeof USER_LINK_TARGET !== 'undefined') ? USER_LINK_TARGET : '_blank';
+    return '<li class="hot-item" onclick="openHotLink(\'' + escapeHtml(url) + '\',\'' + linkTarget + '\')" data-tooltip="' + escapeHtml(title) + '">'
          +   '<span class="rank' + rankClass + '">' + (index + 1) + '</span>'
          +   '<span class="hot-title">' + escapeHtml(title) + '</span>'
          +   hotHtml
@@ -143,18 +186,18 @@ function renderControlItem(card, total) {
 
     if (expanded) {
         // ===== 已展开状态（绿色，显示"已展开全部 N 条，点击折叠"）=====
-        return '<div class="card-expand-bar hot-item-footer" onclick="toggleExpandByCard(this)">'
+        return '<li class="card-expand-bar hot-item-footer" onclick="toggleExpandByCard(this)">'
              +   '<span class="rank-expand" style="background: linear-gradient(135deg,#52c41a 0%,#73d13d 100%);"><span class="iconfont icon-arrow_up_fat"></span></span>'
              +   '<span class="footer-title">已展开全部 ' + total + ' 条，点击折叠</span>'
              +   '<span class="footer-heat"><span class="iconfont icon-dui" style="font-size:11px; margin-right:2px;"></span>完成</span>'
-             + '</div>';
+             + '</li>';
     } else {
-        // ===== 折叠状态（紫色，显示"展开全部 N 条 / 点击展开"）=====
-        return '<div class="card-expand-bar hot-item-expand" onclick="toggleExpandByCard(this)">'
+        // ===== 折叠状态（绿色，显示"展开全部 N 条 / 点击展开"）=====
+        return '<li class="card-expand-bar hot-item-expand" onclick="toggleExpandByCard(this)">'
              +   '<span class="rank-expand"><span class="iconfont icon-arrow_down_fat"></span></span>'
              +   '<span class="expand-title">展开全部 ' + total + ' 条</span>'
              +   '<span class="expand-arrow">点击展开</span>'
-             + '</div>';
+             + '</li>';
     }
 }
 
@@ -196,38 +239,31 @@ function toggleExpand(card) {
     var listEl   = card.querySelector('.hot-list');
     if (!cardBody || !listEl) return;
 
-    // 拿完整数据（存在卡片元素的 _allData 属性上）
-    var allData = card._allData || [];
-    var total   = allData.length;
-    if (total === 0) return;
+    var allItems = listEl.querySelectorAll('.hot-item');
+    var total    = allItems.length;
 
     // 当前状态
     var expanded = card.getAttribute('data-expanded') === '1';
 
-    // ===== 切换状态 =====
+    // ===== 切换状态（只切 display，不重建 DOM — 性能更好、SEO 友好）=====
     if (expanded) {
-        // --- 折叠：只显示前 DISPLAY_LIMIT 条 ---
+        // --- 折叠：隐藏 DISPLAY_LIMIT 之后的条目 ---
         card.setAttribute('data-expanded', '0');
         var showN = Math.min(DISPLAY_LIMIT, total);
-        var html = '';
-        for (var i = 0; i < showN; i++) {
-            html += renderHotItem(allData[i], i);
+        for (var i = showN; i < total; i++) {
+            allItems[i].style.display = 'none';
         }
-        listEl.innerHTML = html;
     } else {
         // --- 展开：显示全部 ---
         card.setAttribute('data-expanded', '1');
-        var html = '';
         for (var i = 0; i < total; i++) {
-            html += renderHotItem(allData[i], i);
+            allItems[i].style.display = '';
         }
-        listEl.innerHTML = html;
     }
 
     // ===== 更新展开条的内容（箭头、文字、颜色）=====
     var expandBar = cardBody.querySelector('.card-expand-bar');
     if (expandBar) {
-        // outerHTML 替换整个元素（包括它自己）
         expandBar.outerHTML = renderControlItem(card, total);
     }
 }
@@ -259,6 +295,19 @@ function refreshCard(btnEl) {
     var listEl    = card.querySelector('.hot-list');
     var timeEl    = card.querySelector('.update-time');
     var sourceId  = btnEl.getAttribute('data-source') || '';
+
+    // ===== 防刷第 1 层：前端冷却（15 秒内同一张卡片只能点一次）=====
+    // 和后端 refresh.php 冷却（15 秒）对齐，避免前端先挡住用户
+    var COOLDOWN_MS = 15000;
+    var lastKey = '__hotcc_last_refresh_' + sourceId;
+    var now = Date.now();
+    var last = parseInt(sessionStorage.getItem(lastKey) || '0', 10);
+    if (last && (now - last) < COOLDOWN_MS) {
+        var remain = Math.ceil((COOLDOWN_MS - (now - last)) / 1000);
+        showToast('刷新太频繁啦，等 ' + remain + ' 秒再试', 'error');
+        return;
+    }
+    sessionStorage.setItem(lastKey, now);
 
     // ===== 进入"加载中"状态 =====
     btnEl.disabled = true;
@@ -305,18 +354,32 @@ function refreshCard(btnEl) {
                     card._allData = data;
                     card.setAttribute('data-expanded', '0');
 
-                    // 渲染前 DISPLAY_LIMIT 条
-                    var showN = Math.min(DISPLAY_LIMIT, total);
+                    // 渲染全部（刷新也要 SEO 友好，全部塞进 DOM）
                     var html = '';
-                    for (var i = 0; i < showN; i++) {
+                    for (var i = 0; i < total; i++) {
                         html += renderHotItem(data[i], i);
                     }
                     listEl.innerHTML = html;
 
-                    // 如果超过 DISPLAY_LIMIT，追加"展开全部"控制条（在 ul 外面，card-body 里面）
-                    if (total > DISPLAY_LIMIT) {
-                        cardBody.insertAdjacentHTML('beforeend', renderControlItem(card, total));
+                    // 折叠：隐藏 DISPLAY_LIMIT 之后的条目
+                    var showN = Math.min(DISPLAY_LIMIT, total);
+                    var items = listEl.querySelectorAll('.hot-item');
+                    for (var i = showN; i < items.length; i++) {
+                        items[i].style.display = 'none';
                     }
+
+                    // 永远追加"展开全部"控制条（保持 11 行 grid 结构）
+                    // 数据 > DISPLAY_LIMIT → 可见、可点击
+                    // 数据 ≤ DISPLAY_LIMIT → is-placeholder（visibility:hidden 占位）
+                    var expandHtml = renderControlItem(card, total);
+                    if (total <= DISPLAY_LIMIT) {
+                        // 在返回的 <li class="card-expand-bar ..."> 上加 is-placeholder
+                        expandHtml = expandHtml.replace(
+                            'class="card-expand-bar',
+                            'class="card-expand-bar is-placeholder'
+                        );
+                    }
+                    listEl.insertAdjacentHTML('beforeend', expandHtml);
                 }
 
                 // 更新时间
@@ -370,6 +433,263 @@ function refreshCard(btnEl) {
 // 初始化区（页面加载完后执行）
 // ============================================================
 document.addEventListener('DOMContentLoaded', function () {
+
+    // ===== Tooltip 管理器（跟随鼠标 + JS body 插入避开 overflow 裁剪）=====
+    (function initTooltipManager() {
+        var tooltipEl = null;
+        var currentTarget = null;
+        var lastMouseX = 0;
+        var lastMouseY = 0;
+
+        // 全局监听鼠标坐标
+        document.addEventListener('mousemove', function(e) {
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+        });
+
+        // 创建 tooltip 元素（只创建一次，反复复用）
+        function ensureTooltip() {
+            if (tooltipEl) return tooltipEl;
+            tooltipEl = document.createElement('div');
+            tooltipEl.className = 'js-tooltip';
+            document.body.appendChild(tooltipEl);
+            return tooltipEl;
+        }
+
+        // 显示 tooltip（跟随鼠标）
+        function showTooltip(target) {
+            if (!target || !target.isConnected) return;  // 节点已脱离 DOM 则跳过
+            var text = target.getAttribute('data-tooltip');
+            if (!text) return;
+
+            var tt = ensureTooltip();
+            tt.textContent = text;
+            tt.classList.add('visible');
+
+            var gap = 10;
+
+            // 先让它渲染出来拿到实际尺寸
+            tt.style.left = '-9999px';
+            tt.style.top = '0';
+            var tooltipW = tt.offsetWidth;
+            var tooltipH = tt.offsetHeight;
+
+            // 离顶部太近则向下弹
+            var flipDown = (lastMouseY - tooltipH - gap) < 8;
+
+            // tooltip 中心对齐鼠标 X
+            var left = lastMouseX - tooltipW / 2;
+            var top;
+            if (flipDown) {
+                top = lastMouseY + gap;
+            } else {
+                top = lastMouseY - tooltipH - gap;
+            }
+
+            // 边界修正
+            var vw = window.innerWidth;
+            var vh = window.innerHeight;
+            if (left < 8) left = 8;
+            if (left + tooltipW > vw - 8) left = vw - 8 - tooltipW;
+            if (!flipDown && top < 8) top = 8;
+            if (flipDown && top + tooltipH > vh - 8) top = vh - 8 - tooltipH;
+
+            tt.style.top = top + 'px';
+            tt.style.left = left + 'px';
+        }
+
+        // 隐藏 tooltip
+        function hideTooltip() {
+            if (tooltipEl) {
+                tooltipEl.classList.remove('visible');
+            }
+            currentTarget = null;  // 必须无条件清空，否则 mousemove 还会重新 show
+        }
+
+        // 事件委托：监听所有带 data-tooltip 的元素
+        document.addEventListener('mouseover', function(e) {
+            if (e.clientX !== undefined) {
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+            }
+            var target = e.target.closest('[data-tooltip]');
+            if (target && target !== currentTarget) {
+                currentTarget = target;
+                showTooltip(target);
+            }
+        });
+
+        document.addEventListener('mouseout', function(e) {
+            var target = e.target.closest('[data-tooltip]');
+            if (target) {
+                var related = e.relatedTarget;
+                if (!related || !target.contains(related)) {
+                    hideTooltip();
+                }
+            }
+        });
+
+        // 鼠标在 item 内移动时实时更新 tooltip 位置（rAF 节流）
+        document.addEventListener('mousemove', function(e) {
+            if (!currentTarget) return;
+            if (this._rafPending) return;
+            this._rafPending = true;
+            var self = this;
+            requestAnimationFrame(function() {
+                self._rafPending = false;
+                showTooltip(currentTarget);
+            });
+        });
+
+        // 滚动/窗口变化时隐藏
+        window.addEventListener('scroll', hideTooltip, true);
+        window.addEventListener('resize', hideTooltip);
+    })();
+
+    // ===== 应用用户设置（localStorage）到已渲染的 DOM =====
+    (function applyUserSettings() {
+        var hasSetting = false;
+
+        // 1. 隐藏来源链接
+        if (typeof USER_SHOW_SOURCE !== 'undefined' && !USER_SHOW_SOURCE) {
+            document.querySelectorAll('.card-source-link').forEach(function(el) {
+                el.style.display = 'none';
+            });
+            hasSetting = true;
+        }
+
+        // 2. 隐藏卡片刷新按钮
+        if (typeof USER_SHOW_REFRESH !== 'undefined' && !USER_SHOW_REFRESH) {
+            document.querySelectorAll('.refresh-btn').forEach(function(el) {
+                el.style.display = 'none';
+            });
+            hasSetting = true;
+        }
+
+        // 3. 隐藏热度值
+        if (typeof USER_SHOW_HEAT !== 'undefined' && !USER_SHOW_HEAT) {
+            document.querySelectorAll('.hot-heat').forEach(function(el) {
+                el.style.display = 'none';
+            });
+            hasSetting = true;
+        }
+
+        // 4. 修改链接打开方式 — 遍历所有 .hot-item 的 onclick
+        if (typeof USER_LINK_TARGET !== 'undefined') {
+            document.querySelectorAll('.hot-item').forEach(function(li) {
+                // 从 onclick 里提取 url（openHotLink('url','target')）
+                var oc = li.getAttribute('onclick') || '';
+                var match = oc.match(/openHotLink\(['"](.+?)['"]\s*,\s*['"](.+?)['"]\)/);
+                if (match) {
+                    li.setAttribute('onclick', "openHotLink('" + match[1] + "','" + USER_LINK_TARGET + "')");
+                }
+            });
+            hasSetting = true;
+        }
+
+        // 5. 调整卡片折叠条数（DISPLAY_LIMIT）
+        // PHP 永远渲染展开条（保持 11 行 grid 结构）
+        // 数据 ≤ DISPLAY_LIMIT → 展开条加 is-placeholder（visibility:hidden 占位）
+        // 数据 > DISPLAY_LIMIT → 展开条可见、可点击
+        if (typeof DISPLAY_LIMIT !== 'undefined') {
+            document.querySelectorAll('.hot-card').forEach(function(card) {
+                var ul = card.querySelector('.hot-list');
+                if (!ul) return;
+                var allLi = ul.querySelectorAll('.hot-item');
+
+                // 真实总数从 _allData 读，这才是完整数据（header.php 注入的 CARD_DATA）
+                var realTotal = (card._allData && card._allData.length > 0)
+                    ? card._allData.length
+                    : allLi.length;  // 兜底（平台详情页没有 _allData）
+
+                // 先把 DOM 里所有 li 恢复显示（为后面折叠做准备）
+                allLi.forEach(function(li) { li.style.display = ''; });
+
+                var ctrl = card.querySelector('.card-expand-bar');
+                card.setAttribute('data-expanded', '0');
+
+                if (realTotal <= DISPLAY_LIMIT) {
+                    // --- 真实总数 ≤ 用户设置的折叠上限：全部显示 ---
+                    card.setAttribute('data-expanded', '0');
+
+                    // 补渲染：如果 PHP 只渲染了前 config.display_limit 条，
+                    // 但 realTotal 可能更多（虽然 <= DISPLAY_LIMIT），需要补渲染完整列表
+                    if (realTotal > allLi.length && typeof renderHotItem === 'function') {
+                        var html = '';
+                        for (var k = 0; k < realTotal; k++) {
+                            html += renderHotItem(card._allData[k], k);
+                        }
+                        ul.innerHTML = html;
+                        // 补回展开条（永远在 DOM 里）
+                        ctrl = ul.querySelector('.card-expand-bar');
+                    }
+
+                    // 展开条占位模式：visibility:hidden 但保持 grid 行
+                    if (ctrl) {
+                        ctrl.classList.add('is-placeholder');
+                    }
+                } else {
+                    // --- 真实总数 > 用户设置的折叠上限：需要折叠 ---
+
+                    // 折叠：只显示前 DISPLAY_LIMIT 条
+                    // 但 PHP 只渲染了前 config.display_limit 条到 DOM
+                    // 如果 DISPLAY_LIMIT <= PHP 渲染的 DOM li 数量，直接隐藏后面的就行
+                    // 否则（DISPLAY_LIMIT > config.display_limit），需要补渲染
+                    if (DISPLAY_LIMIT <= allLi.length) {
+                        // 直接隐藏 DOM 里多余的
+                        for (var i = DISPLAY_LIMIT; i < allLi.length; i++) {
+                            allLi[i].style.display = 'none';
+                        }
+                    } else {
+                        // DOM 里 li 不够，用 _allData 重建 ul 前 DISPLAY_LIMIT 条
+                        var html2 = '';
+                        for (var m = 0; m < DISPLAY_LIMIT && m < realTotal; m++) {
+                            html2 += renderHotItem(card._allData[m], m);
+                        }
+                        // 先找到展开条节点（在 innerHTML 重建 ul 前保存引用）
+                        ctrl = ul.querySelector('.card-expand-bar');
+                        var ctrlOuter = ctrl ? ctrl.outerHTML : null;
+                        ul.innerHTML = html2;
+                        // 补回展开条
+                        if (ctrlOuter) {
+                            ul.insertAdjacentHTML('beforeend', ctrlOuter);
+                        } else if (typeof renderControlItem === 'function') {
+                            ul.insertAdjacentHTML('beforeend', renderControlItem(card, realTotal));
+                        }
+                        ctrl = ul.querySelector('.card-expand-bar');
+                    }
+
+                    // 展开条可见、可点击（移除占位类）
+                    if (ctrl) {
+                        ctrl.classList.remove('is-placeholder');
+                    } else if (typeof renderControlItem === 'function') {
+                        // 极端情况：PHP 没渲染展开条，补上
+                        ul.insertAdjacentHTML('beforeend', renderControlItem(card, realTotal));
+                    }
+                }
+            });
+        }
+
+        // 6. 调整列数 — 改 .hot-grid 的 grid-template-columns
+        if (typeof USER_COLUMNS !== 'undefined') {
+            var grids = document.querySelectorAll('.hot-grid');
+            grids.forEach(function(grid) {
+                if (USER_COLUMNS === 'auto') {
+                    // 让 PHP 动态 CSS 生效（优先用它）
+                    grid.style.gridTemplateColumns = '';
+                    // 用 config.php 的 card_min_width（兜底 260）
+                    var cw = (PHP_DEF && PHP_DEF.card_min_width) ? PHP_DEF.card_min_width : 260;
+                    grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(' + cw + 'px, 1fr))';
+                } else {
+                    var n = parseInt(USER_COLUMNS, 10);
+                    if (n >= 1 && n <= 10) {
+                        grid.style.gridTemplateColumns = 'repeat(' + n + ', 1fr)';
+                    }
+                }
+            });
+            hasSetting = true;
+        }
+    })();
 
     // ----- 回到顶部按钮 -----
     var backToTop = document.getElementById('backToTop');

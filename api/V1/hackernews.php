@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Hacker News 处理器
  * 使用官方 Firebase JSON API（稳定、无需 HTML 解析）
@@ -26,12 +26,9 @@ class HackernewsHotSearch {
             $handles = array();
 
             foreach ($ids as $id) {
-                $ch = curl_init();
+                $ch = smartCurlInit();
                 curl_setopt($ch, CURLOPT_URL, "https://hacker-news.firebaseio.com/v0/item/{$id}.json");
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
                 curl_setopt($ch, CURLOPT_ENCODING, 'gzip,deflate');
                 curl_multi_add_handle($mh, $ch);
                 $handles[$id] = $ch;
@@ -80,14 +77,11 @@ class HackernewsHotSearch {
     }
 
     private function curl($url) {
-        $ch = curl_init();
+        $ch = smartCurlInit();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
         curl_setopt($ch, CURLOPT_ENCODING, 'gzip,deflate');
-        $output = curl_exec($ch);
+        $output = smartCurlExec($ch, 'hackernews');
         curl_close($ch);
         return $output ?: '';
     }

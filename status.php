@@ -23,11 +23,32 @@ require_once __DIR__ . '/function.php';
 $cfg = $GLOBALS['site_config'];
 
 // ============================================================
+// 按 api_version 过滤平台列表（和 index.php 保持一致）
+// 版本目录是唯一真相源，只有 api/{version}/ 下有 handler 的平台才展示
+// ============================================================
+$apiVersion = 'V1';
+if (!empty($cfg['api_version'])) {
+    $apiVersion = preg_replace('/[^V0-9]/', '', strtoupper($cfg['api_version'])) ?: 'V1';
+}
+$versionDir = __DIR__ . '/api/' . $apiVersion;
+$availableIds = [];
+if (is_dir($versionDir)) {
+    foreach (glob($versionDir . '/*.php') as $f) {
+        $availableIds[] = strtolower(pathinfo($f, PATHINFO_FILENAME));
+    }
+}
+$sources = $GLOBALS['sources'];
+if (!empty($availableIds)) {
+    $sources = array_values(array_filter($sources, function($s) use ($availableIds) {
+        return !empty($s['id']) && in_array(strtolower($s['id']), $availableIds, true);
+    }));
+}
+
+// ============================================================
 // 第 1 步：扫描今天的缓存目录
 // ============================================================
 $todayDir = date('Ymd');
-$cacheDir = rtrim($cfg['cache_dir'], '/') . '/' . $todayDir;
-$sources = $GLOBALS['sources'];
+$cacheDir = rtrim(isset($cfg['archive_dir']) ? $cfg['archive_dir'] : $cfg['cache_dir'], '/') . '/' . $todayDir;
 $now = time();
 
 // 统计用
@@ -127,7 +148,17 @@ $pageTitle   = '平台状态面板 - ' . $cfg['site_name'];
 $pageDesc    = '查看 ' . $cfg['site_name'] . ' 各平台缓存状态：最后抓取时间、数据条目、缓存文件大小、是否过期。';
 $pageKeywords = '状态面板,缓存监控,' . $cfg['site_name'] . '状态';
 $pageRobots  = 'noindex, nofollow';
-$canonical   = $cfg['seo_domain'] . '/status.php';
+$canonical   = $cfg['seo_domain'] . '/status';
+$breadcrumbJsonLd = '<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {"@type":"ListItem","position":1,"name":"首页","item":"' . $cfg['seo_domain'] . '/"},
+        {"@type":"ListItem","position":2,"name":"平台状态面板","item":"' . $cfg['seo_domain'] . '/status"}
+    ]
+}
+</script>';
 
 include __DIR__ . '/home/header.php';
 ?>
@@ -136,26 +167,30 @@ include __DIR__ . '/home/header.php';
     <div class="status-wrap">
         <nav class="status-breadcrumb">
             <a href="/">首页</a> <span>›</span> <span>状态面板</span>
-            <a href="/status.php" class="status-refresh">↻ 刷新</a>
+            <a href="/status" class="status-refresh" id="statusRefreshBtn">↻ 刷新</a>
         </nav>
 
         <!-- 汇总卡片 -->
         <div class="status-summary">
+            <div class="summary-card summary-version summary-version-grad">
+                <div class="summary-num"><?php echo escapeHtml($apiVersion); ?></div>
+                <div class="summary-label">API 版本（生效中）</div>
+            </div>
             <div class="summary-card summary-total">
                 <div class="summary-num"><?php echo $stats['total']; ?></div>
                 <div class="summary-label">平台总数</div>
             </div>
             <div class="summary-card summary-ok">
                 <div class="summary-num"><?php echo $stats['success']; ?></div>
-                <div class="summary-label"><i class="iconfont icon-dui" style="font-size:12px; margin-right:2px;"></i>正常</div>
+                <div class="summary-label"><i class="iconfont icon-dui summary-label-icon"></i>正常</div>
             </div>
             <div class="summary-card summary-warn">
                 <div class="summary-num"><?php echo $stats['expired']; ?></div>
-                <div class="summary-label"><i class="iconfont icon-shijian" style="font-size:12px; margin-right:2px;"></i>已过期</div>
+                <div class="summary-label"><i class="iconfont icon-shijian summary-label-icon"></i>已过期</div>
             </div>
             <div class="summary-card summary-err">
                 <div class="summary-num"><?php echo $stats['missing']; ?></div>
-                <div class="summary-label"><i class="iconfont icon-cuowu" style="font-size:12px; margin-right:2px;"></i>未抓取</div>
+                <div class="summary-label"><i class="iconfont icon-cuowu summary-label-icon"></i>未抓取</div>
             </div>
             <div class="summary-card summary-size">
                 <div class="summary-num"><?php echo formatSize($stats['total_size']); ?></div>
@@ -168,13 +203,13 @@ include __DIR__ . '/home/header.php';
             <table class="status-table">
                 <thead>
                     <tr>
-                        <th style="width:40px;">#</th>
+                        <th class="status-th-idx">#</th>
                         <th>平台</th>
-                        <th style="width:120px;">最后抓取</th>
-                        <th style="width:80px;">条目</th>
-                        <th style="width:80px;">大小</th>
-                        <th style="width:80px;">状态</th>
-                        <th style="width:100px;">操作</th>
+                        <th class="status-th-crawl">最后抓取</th>
+                        <th class="status-th-count">条目</th>
+                        <th class="status-th-size">大小</th>
+                        <th class="status-th-state">状态</th>
+                        <th class="status-th-op">操作</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -182,8 +217,8 @@ include __DIR__ . '/home/header.php';
                     <tr class="status-row status-<?php echo $p['status']; ?>">
                         <td class="status-idx"><?php echo $i + 1; ?></td>
                         <td>
-                            <span class="iconfont <?php echo escapeHtml($p['icon']); ?> platform-icon <?php echo escapeHtml($p['colorClass']); ?>" style="font-size:18px; margin-right:6px;"></span>
-                            <a href="/platform.php/<?php echo $p['id']; ?>" title="查看详情"><?php echo escapeHtml($p['name']); ?></a>
+                            <span class="iconfont <?php echo escapeHtml($p['icon']); ?> platform-icon <?php echo escapeHtml($p['colorClass']); ?> status-plat-icon"></span>
+                            <a href="/<?php echo $p['id']; ?>" title="查看详情"><?php echo escapeHtml($p['name']); ?></a>
                         </td>
                         <td>
                             <?php if ($p['captured_at']): ?>
@@ -205,7 +240,9 @@ include __DIR__ . '/home/header.php';
                             <?php endif; ?>
                         </td>
                         <td>
-                            <a href="/core/refresh.php?source=<?php echo $p['id']; ?>" class="status-action">刷新</a>
+                            <a href="/core/refresh.php?source=<?php echo $p['id']; ?>"
+                               class="status-action js-status-refresh"
+                               data-source="<?php echo $p['id']; ?>">刷新</a>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -216,7 +253,65 @@ include __DIR__ . '/home/header.php';
         <div class="status-footer">
             <p>缓存目录：<code>cache/<?php echo $todayDir; ?>/</code> &nbsp;·&nbsp; 缓存有效期：<?php echo intval($cfg['cache_ttl'] / 3600); ?> 小时</p>
             <p class="status-note">提示：页面静态缓存（page_index_*.html / page_platform_*.html）不在此面板显示。点击右上角「清理缓存」按钮可一键清除所有缓存。</p>
+            <div class="status-footer-nav">
+                <a href="/stats" class="status-nav-btn status-nav-green">📊 API 统计</a>
+                <a href="/debug" class="status-nav-btn status-nav-purple">🛠 调试工具</a>
+            </div>
         </div>
     </div>
 
 <?php include __DIR__ . '/home/footer.php'; ?>
+
+<script>
+// status 页面刷新按钮（面包屑 + 表格每行）
+(function() {
+    // 1. 面包屑的「↻ 刷新」：拦截 <a> 跳转 → toast → reload
+    var bcRefresh = document.getElementById('statusRefreshBtn');
+    if (bcRefresh) {
+        bcRefresh.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (typeof showToast === 'function') {
+                showToast('正在刷新状态面板...', 'info');
+            }
+            setTimeout(function() { location.reload(); }, 400);
+        });
+    }
+
+    // 2. 表格每行的「刷新」：AJAX 调用 refresh.php + toast + reload
+    document.addEventListener('click', function(e) {
+        var link = e.target.closest('.js-status-refresh');
+        if (!link) return;
+        e.preventDefault();
+
+        var source = link.dataset.source || '';
+        if (!source) return;
+
+        link.textContent = '刷新中…';
+        link.style.pointerEvents = 'none';
+
+        fetch('/core/refresh.php?source=' + encodeURIComponent(source))
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    if (typeof showToast === 'function') {
+                        showToast('已刷新：' + source + '（' + (data.data ? data.data.length : 0) + ' 条）', 'success');
+                    }
+                    setTimeout(function() { location.reload(); }, 600);
+                } else {
+                    if (typeof showToast === 'function') {
+                        showToast('刷新失败：' + (data.message || '未知错误'), 'error');
+                    }
+                    link.textContent = '刷新';
+                    link.style.pointerEvents = '';
+                }
+            })
+            .catch(function() {
+                if (typeof showToast === 'function') {
+                    showToast('网络错误，请重试', 'error');
+                }
+                link.textContent = '刷新';
+                link.style.pointerEvents = '';
+            });
+    });
+})();
+</script>

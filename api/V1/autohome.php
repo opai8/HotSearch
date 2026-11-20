@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * 汽车之家 - 媳妇当车模
  * 页面结构 (SSR 完整):
@@ -32,15 +32,13 @@ class AutohomeHotSearch {
                 'Upgrade-Insecure-Requests: 1',
             );
 
-            $ch = curl_init($url);
+            $ch = smartCurlInit();
+            curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
             curl_setopt($ch, CURLOPT_ENCODING, '');
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-            $html = curl_exec($ch);
+            $html = smartCurlExec($ch, 'autohome');
             $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
 

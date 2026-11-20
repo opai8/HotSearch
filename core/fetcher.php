@@ -44,13 +44,36 @@ function ensureCacheDir() {
     // 创建 .htaccess 保护缓存目录
     $htaccess = $cacheDir . '/.htaccess';
     if (!file_exists($htaccess)) {
-        @file_put_contents($htaccess, "Deny from all\n");
+        if (file_put_contents($htaccess, "Deny from all\n") === false) {
+            error_log('fetcher.php 写 .htaccess 保护文件失败: ' . $htaccess);
+        }
     }
 
-    // 自动创建今天的日期目录
-    $todayDir = $cacheDir . '/' . date('Ymd');
+    // 自动创建今天的日期目录（历史存档）
+    $archiveDir = $GLOBALS['archive_dir'];
+    $todayDir = $archiveDir . '/' . date('Ymd');
     if (!is_dir($todayDir)) {
         @mkdir($todayDir, 0755, true);
+    }
+
+    // 每次请求清过期锁文件（防刷冷却已失效，定期清理防止堆积）
+    cleanupExpiredLocks();
+}
+
+/**
+ * 清理 _locks/ 下超过 120 秒的过期锁文件
+ * 页面级缓存（page_index / page_platform）由各自页面自己清理
+ */
+function cleanupExpiredLocks() {
+    $cacheDir = $GLOBALS['cache_dir'];
+    $lockDir = $cacheDir . '/_locks';
+    if (!is_dir($lockDir)) return;
+    $files = glob($lockDir . '/*');
+    foreach ($files as $f) {
+        if (!is_file($f)) continue;
+        if (filemtime($f) < time() - 120) {
+            @unlink($f);
+        }
     }
 }
 
@@ -65,7 +88,7 @@ function getCacheFilePath($sourceId, $dateDir = null) {
     if ($dateDir === null) {
         $dateDir = date('Ymd');
     }
-    $dir = rtrim($GLOBALS['cache_dir'], '/') . '/' . $dateDir;
+    $dir = rtrim($GLOBALS['archive_dir'], '/') . '/' . $dateDir;
     return $dir . '/' . $sourceId . '.json';
 }
 
@@ -161,11 +184,13 @@ function writeCache($sourceId, $data) {
 
     // 原子写入：临时文件 + rename
     $tmpFile = $file . '.tmp';
-    if (@file_put_contents($tmpFile, $json) === false) {
+    if (file_put_contents($tmpFile, $json) === false) {
+        error_log('fetcher.php 写临时缓存失败: ' . $tmpFile);
         return false;
     }
 
     if (!@rename($tmpFile, $file)) {
+        error_log('fetcher.php rename 缓存失败: ' . $tmpFile . ' → ' . $file);
         @unlink($tmpFile);
         return false;
     }
@@ -216,6 +241,11 @@ function getCacheTime($sourceId) {
 function fetchFromApi($sourceId, $limit) {
     $baseDir = dirname(__DIR__);
 
+    // 读取 API 版本（优先从 $GLOBALS 读，没有就从 config.php 读）
+    $siteConfig = isset($GLOBALS['site_config']) ? $GLOBALS['site_config'] : (file_exists($baseDir . '/config.php') ? require $baseDir . '/config.php' : []);
+    $apiVersion = isset($siteConfig['api_version']) ? strtoupper($siteConfig['api_version']) : 'V1';
+    $apiVersion = preg_replace('/[^V0-9]/', '', $apiVersion) ?: 'V1';
+
     $configFile = $baseDir . '/api/utils/config.php';
     if (!file_exists($configFile)) {
         return ['success' => false, 'data' => [], 'error' => '配置文件不存在'];
@@ -227,7 +257,7 @@ function fetchFromApi($sourceId, $limit) {
         return ['success' => false, 'data' => [], 'error' => '不支持的平台: ' . $sourceId];
     }
 
-    $handlerFile = $baseDir . '/api/V1/' . $sourceId . '.php';
+    $handlerFile = $baseDir . '/api/' . $apiVersion . '/' . $sourceId . '.php';
     if (!file_exists($handlerFile)) {
         return ['success' => false, 'data' => [], 'error' => '处理器不存在'];
     }
@@ -251,7 +281,9 @@ function fetchFromApi($sourceId, $limit) {
             $items = isset($result['data']) && is_array($result['data']) ? $result['data'] : [];
             return ['success' => true, 'data' => $items, 'error' => null];
         }
-        return ['success' => false, 'data' => [], 'error' => '获取数据失败'];
+        // 透传 handler 的 message 字段（优先），让前端显示更清晰的错误原因
+        $errMsg = (is_array($result) && !empty($result['message'])) ? $result['message'] : '获取数据失败';
+        return ['success' => false, 'data' => [], 'error' => $errMsg];
     } catch (Throwable $e) {
         return ['success' => false, 'data' => [], 'error' => '执行错误: ' . $e->getMessage()];
     }
@@ -294,6 +326,7 @@ function fetchApiData($sourceId, $limit = null, $forceRefresh = false) {
 function fetchAllSourcesData($sources, $limit = 10, $forceRefresh = false) {
     $cardsData = [];
     foreach ($sources as $source) {
+        if (empty($source['id'])) continue;  // 防御：跳过格式错误的条目
         $result = fetchApiData($source['id'], $limit, $forceRefresh);
         $cardsData[$source['id']] = [
             'source' => $source,
@@ -303,66 +336,5 @@ function fetchAllSourcesData($sources, $limit = 10, $forceRefresh = false) {
         ];
     }
     return $cardsData;
-}
-
-
-// ============================================================
-// 【方案 B】全局过期缓存清理（概率触发，兜底保障）
-// ============================================================
-// 改动点：
-//   - 历史 JSON 永久保留，不再过期清理
-//   - 只清理：页面静态缓存 + cache/ 根目录的旧格式 JSON
-//   - 防止磁盘被垃圾文件塞满
-// ============================================================
-
-/**
- * 清理所有过期的缓存文件
- *
- * @param int $expireSeconds 过期时间，默认 24 小时
- * @return int 清理掉的文件数量
- */
-function cleanAllExpiredCache($expireSeconds = 86400) {
-    $cacheDir = rtrim($GLOBALS['cache_dir'], '/');
-    if (!is_dir($cacheDir)) return 0;
-
-    $now = time();
-    $count = 0;
-
-    // 1. 清理 cache/ 根目录的旧格式 JSON（迁移用，历史目录里的不碰）
-    foreach (glob($cacheDir . '/*.json') ?: [] as $file) {
-        if (!is_file($file)) continue;
-        $basename = basename($file);
-        if ($basename === '.htaccess') continue;
-        // 旧格式：baidu_20261112_090000.json
-        // 新格式都在子目录里，不会出现在根目录
-        if (!preg_match('/^[a-z0-9_]+_\d{8}_\d{6}\.json$/', $basename)) continue;
-        $mtime = @filemtime($file);
-        if ($mtime !== false && ($now - $mtime) >= $expireSeconds) {
-            if (@unlink($file)) $count++;
-        }
-    }
-
-    // 2. 清理页面级静态缓存
-    $pagePatterns = ['/page_index_*.html', '/page_platform_*.html'];
-    foreach ($pagePatterns as $pat) {
-        foreach (glob($cacheDir . $pat) ?: [] as $f) {
-            $mtime = @filemtime($f);
-            if ($mtime !== false && ($now - $mtime) >= $expireSeconds) {
-                if (@unlink($f)) $count++;
-            }
-        }
-    }
-
-    return $count;
-}
-
-/**
- * 概率触发全局缓存清理
- */
-function maybeCleanExpiredCache($percent = 1, $expireSeconds = 86400) {
-    if (mt_rand(1, 100) <= $percent) {
-        return cleanAllExpiredCache($expireSeconds);
-    }
-    return 0;
 }
 ?>

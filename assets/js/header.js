@@ -30,8 +30,14 @@
     });
 
     function setTheme(theme) {
+        // 临时禁用 transition，避免主题切换时颜色过渡产生视觉恍惚
+        document.body.classList.add('no-theme-transition');
+
         document.body.setAttribute('data-theme', theme);
         
+        // 同时同步 html 元素的 data-theme（header.php 里也设了它）
+        document.documentElement.setAttribute('data-theme', theme);
+
         // 切换图标
         var iconSpan = themeToggle.querySelector('.iconfont');
         if (iconSpan) {
@@ -43,56 +49,82 @@
                 themeToggle.setAttribute('title', '夜间模式');
             }
         }
+
+        // 下一帧移除禁用类，让 transition 恢复正常（仅主题切换瞬间跳过）
+        requestAnimationFrame(function() {
+            requestAnimationFrame(function() {
+                document.body.classList.remove('no-theme-transition');
+            });
+        });
     }
 })();
 
 // ========================================
-// 刷新按钮 - 清除缓存并重新加载
+// 刷新按钮 - 清缓存 + 强制重爬 + 刷新页面
+// 防刷三层：
+//   第 1 层 前端防抖 → 点击后 30 秒内按钮 disabled
+//   第 2 层 后端冷却 → clear_cache.php 全局 30 秒 + IP 每分钟 3 次
+//   第 3 层 Nginx/.htaccess 白名单 → core/ 下仅 refresh.php + clear_cache.php 可外部访问
 // ========================================
 (function() {
-    // 新手提示：用 id 查找按钮，而不是按索引，
-    // 这样即使其他按钮隐藏了，也不会找错对象
     var refreshBtn = document.getElementById('headerRefreshBtn');
+    if (!refreshBtn) return;
 
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', function() {
-            // 提示正在刷新
-            if (typeof showToast === 'function') {
-                showToast('正在刷新所有数据...', 'info');
+    var COOLDOWN_MS = 15000; // 前端 15 秒防抖（和后端 clear_cache.php 冷却对齐）
+    var cooldownTimer = null;
+
+    refreshBtn.addEventListener('click', function() {
+        // 前端防抖：冷却中直接提示
+        if (cooldownTimer) {
+            var remain = Math.ceil((parseInt(refreshBtn.getAttribute('data-cooldown-end') || '0') - Date.now()) / 1000);
+            if (remain > 0 && typeof showToast === 'function') {
+                showToast('清缓存冷却中，请 ' + remain + ' 秒后再点', 'info');
             }
-            
-            // 调用清除缓存接口
-            fetch('core/refresh.php?action=clear_all', {
-                method: 'GET'
-            })
-            .then(function(response) {
-                return response.json();
-            })
-            .then(function(data) {
-                if (data.success) {
-                    if (typeof showToast === 'function') {
-                        showToast('缓存已清除，正在重新加载...', 'success');
-                    }
-                    // 刷新页面重新获取数据
-                    setTimeout(function() {
-                        location.reload();
-                    }, 500);
-                } else {
-                    if (typeof showToast === 'function') {
-                        showToast('清除缓存失败: ' + data.message, 'error');
-                    }
-                }
-            })
-            .catch(function(error) {
-                console.error('清除缓存失败:', error);
-                // 即使接口失败也尝试刷新
-                if (typeof showToast === 'function') {
-                    showToast('正在重新加载...', 'info');
-                }
-                setTimeout(function() {
-                    location.reload();
-                }, 300);
-            });
+            return;
+        }
+
+        // 立即禁用按钮 + 设冷却时间戳
+        refreshBtn.disabled = true;
+        refreshBtn.classList.add('is-cooling');
+        var endTime = Date.now() + COOLDOWN_MS;
+        refreshBtn.setAttribute('data-cooldown-end', endTime);
+
+        if (typeof showToast === 'function') {
+            showToast('正在清除缓存并重新爬取数据...', 'info');
+        }
+
+        // 前端冷却结束后恢复按钮
+        cooldownTimer = setTimeout(function() {
+            refreshBtn.disabled = false;
+            refreshBtn.classList.remove('is-cooling');
+            refreshBtn.removeAttribute('data-cooldown-end');
+            cooldownTimer = null;
+        }, COOLDOWN_MS);
+
+        fetch('/core/clear_cache.php?t=' + Date.now(), {
+            method: 'GET'
+        })
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            if (typeof showToast === 'function') {
+                var msg = '页面缓存已清除';
+                if (data.page_cache_deleted > 0) msg += '（' + data.page_cache_deleted + ' 个）';
+                msg += '，正在重新加载...';
+                showToast(msg, data.success ? 'success' : 'error');
+            }
+            setTimeout(function() {
+                location.reload();
+            }, 600);
+        })
+        .catch(function() {
+            if (typeof showToast === 'function') {
+                showToast('请求失败，直接刷新页面...', 'error');
+            }
+            setTimeout(function() {
+                location.reload();
+            }, 400);
         });
-    }
+    });
 })();

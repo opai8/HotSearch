@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 状态面板样式（日间模式）
  * 对应页面：status.php
  */
@@ -12,7 +12,7 @@
 /* ---------- 面包屑 + 刷新 ---------- */
 .status-breadcrumb {
     font-size: 13px;
-    color: #888;
+    color: #888888;
     margin-bottom: 16px;
     display: flex;
     align-items: center;
@@ -31,8 +31,8 @@
     padding: 4px 10px;
     border: 1px solid #e0e0e0;
     border-radius: 4px;
-    color: #666 !important;
-    background: #fff;
+    color: #666666 !important;
+    background: #ffffff;
 }
 .status-refresh:hover {
     border-color: #667eea;
@@ -42,29 +42,29 @@
 /* ---------- 汇总卡片 ---------- */
 .status-summary {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 12px;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
     margin-bottom: 20px;
 }
 .summary-card {
-    background: #fff;
+    background: #ffffff;
     border-radius: 10px;
-    padding: 16px 12px;
+    padding: 14px 8px;
     text-align: center;
     border: 1px solid #f0f0f0;
     box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 .summary-num {
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 700;
     line-height: 1.2;
     margin-bottom: 4px;
 }
 .summary-label {
-    font-size: 12px;
-    color: #888;
+    font-size: 11px;
+    color: #888888;
 }
-.summary-total .summary-num { color: #333; }
+.summary-total .summary-num { color: #333333; }
 .summary-ok .summary-num   { color: #52c41a; }
 .summary-warn .summary-num { color: #faad14; }
 .summary-err .summary-num  { color: #ff4d4f; }
@@ -72,7 +72,7 @@
 
 /* ---------- 表格 ---------- */
 .status-table-wrap {
-    background: #fff;
+    background: #ffffff;
     border-radius: 10px;
     border: 1px solid #f0f0f0;
     box-shadow: 0 1px 3px rgba(0,0,0,0.04);
@@ -88,7 +88,7 @@
     font-weight: 600;
     text-align: left;
     padding: 10px 14px;
-    color: #555;
+    color: #555555;
     border-bottom: 1px solid #f0f0f0;
     font-size: 12px;
 }
@@ -118,25 +118,25 @@
 
 /* 时间显示 */
 .status-idx {
-    color: #bbb;
+    color: #bbbbbb;
     font-size: 12px;
     text-align: center;
 }
 .status-age {
     font-weight: 500;
-    color: #333;
+    color: #333333;
 }
 .status-time {
     font-size: 11px;
-    color: #aaa;
+    color: #aaaaaa;
     margin-top: 2px;
 }
 .status-empty {
-    color: #ccc;
+    color: #cccccc;
 }
 .status-count {
     font-variant-numeric: tabular-nums;
-    color: #444;
+    color: #444444;
 }
 
 /* 状态徽章 */
@@ -157,8 +157,8 @@
     padding: 3px 10px;
     border-radius: 4px;
     border: 1px solid #e0e0e0;
-    background: #fff;
-    color: #666 !important;
+    background: #ffffff;
+    color: #666666 !important;
     text-decoration: none !important;
     cursor: pointer;
 }
@@ -172,7 +172,7 @@
 .status-footer {
     margin-top: 16px;
     font-size: 12px;
-    color: #666;
+    color: #666666;
     line-height: 1.8;
 }
 .status-footer code {
@@ -180,12 +180,12 @@
     padding: 1px 6px;
     border-radius: 3px;
     font-size: 11px;
-    color: #555;
+    color: #555555;
 }
 .status-note {
     margin-top: 4px;
     font-size: 11px;
-    color: #888;
+    color: #888888;
 }
 
 /* ---------- 移动端 ---------- */
@@ -193,12 +193,13 @@
     .status-wrap { padding: 12px; }
 
     .status-summary {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
         gap: 8px;
     }
-    .summary-card { padding: 12px 8px; }
-    .summary-num { font-size: 22px; }
-    .summary-size .summary-num { font-size: 15px; }
+    .summary-card { padding: 12px 6px; }
+    .summary-num { font-size: 20px; }
+    .summary-label { font-size: 10px; }
+    .summary-size .summary-num { font-size: 14px; }
 
     /* 移动端表格：隐藏次要列 */
     .status-table thead th:nth-child(3),
@@ -218,3 +219,282 @@
         font-size: 12px;
     }
 }
+
+/* ---------- 内联样式搬迁：status.php ---------- */
+
+/* 版本卡片渐变背景 */
+.summary-version-grad {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #ffffff;
+}
+
+/* 汇总标签内小图标 */
+.summary-label-icon {
+    font-size: 12px;
+    margin-right: 2px;
+}
+
+/* 表头列宽 */
+.status-th-idx    { width: 40px; }
+.status-th-crawl  { width: 120px; }
+.status-th-count  { width: 80px; }
+.status-th-size   { width: 80px; }
+.status-th-state  { width: 80px; }
+.status-th-op     { width: 100px; }
+
+/* 状态表格内平台图标 */
+.status-plat-icon {
+    font-size: 18px;
+    margin-right: 6px;
+}
+
+/* ============================================================
+   API 调用统计区块
+   ============================================================ */
+.status-api-stats {
+    margin: 0 0 24px 0;
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f0f0f0;
+}
+
+.stats-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 16px 0;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.stats-title .iconfont {
+    color: #667eea;
+}
+.stats-sub {
+    font-size: 12px;
+    color: #999;
+    font-weight: normal;
+}
+
+/* 4 个概览卡片 */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.stats-card {
+    padding: 16px;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid #f0f0f0;
+    background: #fafafa;
+}
+.stats-card-num {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 4px;
+}
+.stats-card-label {
+    font-size: 12px;
+    color: #888;
+}
+.stats-blue .stats-card-num  { color: #1890ff; }
+.stats-purple .stats-card-num { color: #722ed1; }
+.stats-warn .stats-card-num   { color: #fa8c16; }
+.stats-ok .stats-card-num     { color: #52c41a; }
+
+/* 下方两个详情并排 */
+.stats-detail-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 20px;
+}
+.stats-block h4 {
+    margin: 0 0 10px 0;
+    font-size: 13px;
+    color: #555;
+    font-weight: 600;
+}
+
+/* Top 排行列表 */
+.stats-rank {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.stats-rank li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px dashed #f0f0f0;
+    font-size: 13px;
+}
+.stats-rank li:last-child { border-bottom: none; }
+.rank-badge {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+}
+.rank-badge.rank-1 { background: #ff4d4f; }
+.rank-badge.rank-2 { background: #fa8c16; }
+.rank-badge.rank-3 { background: #faad14; }
+.rank-badge.rank-n { background: #bbb; }
+.rank-name { flex: 1; color: #333; font-family: monospace; }
+.rank-hits { color: #1890ff; font-weight: 600; font-size: 12px; }
+.rank-force { color: #ff4d4f; font-size: 11px; margin-left: 4px; }
+
+/* 7 天趋势表 */
+.stats-day-table {
+    width: 100%;
+    font-size: 12px;
+    border-collapse: collapse;
+}
+.stats-day-table th,
+.stats-day-table td {
+    padding: 6px 8px;
+    text-align: right;
+    border-bottom: 1px solid #f0f0f0;
+}
+.stats-day-table th:first-child,
+.stats-day-table td:first-child {
+    text-align: left;
+    font-family: monospace;
+}
+.stats-day-table thead th {
+    color: #999;
+    font-weight: normal;
+    font-size: 11px;
+}
+
+.stats-empty {
+    text-align: center;
+    color: #bbb;
+    font-size: 13px;
+    padding: 20px;
+    margin: 0;
+}
+
+/* ============================================================
+   底部导航按钮（从 status.php 底部搬来，用 class 代替 inline style）
+   ============================================================ */
+.status-footer-nav {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--status-sep, #e8e8e8);
+    text-align: center;
+}
+.status-nav-btn {
+    display: inline-block;
+    font-size: 12px;
+    padding: 5px 14px;
+    border-radius: 16px;
+    text-decoration: none !important;
+    border: 1px solid;
+    margin-right: 8px;
+    transition: all 0.15s;
+}
+.status-nav-btn:last-child { margin-right: 0; }
+.status-nav-green {
+    background: #f6ffed;
+    border-color: #52c41a;
+    color: #52c41a !important;
+}
+.status-nav-green:hover {
+    background: #52c41a;
+    color: #fff !important;
+}
+.status-nav-purple {
+    background: #f8f9ff;
+    border-color: #667eea;
+    color: #667eea !important;
+}
+.status-nav-purple:hover {
+    background: #667eea;
+    color: #fff !important;
+}
+
+/* ============================================================
+   运维页共享夜间模式覆盖（status + stats 共用）
+   ============================================================ */
+body[data-theme='dark'] .status-wrap { background: transparent; }
+body[data-theme='dark'] .status-breadcrumb { color: #999; }
+body[data-theme='dark'] .status-breadcrumb a { color: #8b9cf7; }
+body[data-theme='dark'] .status-refresh {
+    background: #2a2a2a;
+    border-color: #4a4a4a;
+    color: #b0b0b0 !important;
+}
+body[data-theme='dark'] .status-refresh:hover {
+    border-color: #667eea;
+    color: #8b9cf7 !important;
+}
+/* 汇总卡 */
+body[data-theme='dark'] .summary-card {
+    background: #2a2a2a;
+    border-color: #3a3a3a;
+    color: #e8e8e8;
+}
+body[data-theme='dark'] .summary-label { color: #888; }
+body[data-theme='dark'] .summary-num { color: #e8e8e8; }
+body[data-theme='dark'] .summary-total .summary-num { color: #e8e8e8; }
+body[data-theme='dark'] .summary-size .summary-num { color: #69c0ff; }
+body[data-theme='dark'] .summary-version-grad {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+}
+/* 表格 */
+body[data-theme='dark'] .status-table-wrap {
+    background: #2a2a2a;
+    border-color: #3a3a3a;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+body[data-theme='dark'] .status-table thead th {
+    background: #252525;
+    border-bottom-color: #3a3a3a;
+    color: #a0a0a0;
+}
+body[data-theme='dark'] .status-table tbody td {
+    border-bottom-color: #353535;
+    color: #d0d0d0;
+}
+body[data-theme='dark'] .status-table tbody tr:hover { background: #333; }
+body[data-theme='dark'] .status-table a { color: #8b9cf7; }
+body[data-theme='dark'] .status-age { color: #e8e8e8; }
+body[data-theme='dark'] .status-time { color: #666; }
+body[data-theme='dark'] .status-idx { color: #555; }
+body[data-theme='dark'] .status-count { color: #b0b0b0; }
+body[data-theme='dark'] .badge-ok   { background: #1a2a1a; color: #73d13d; border-color: #389e0d; }
+body[data-theme='dark'] .badge-warn { background: #2a2a1a; color: #ffd666; border-color: #d48806; }
+body[data-theme='dark'] .badge-err  { background: #2a1a1a; color: #ff7875; border-color: #cf1322; }
+body[data-theme='dark'] .status-action {
+    background: #2a2a2a;
+    border-color: #4a4a4a;
+    color: #b0b0b0 !important;
+}
+body[data-theme='dark'] .status-action:hover {
+    border-color: #667eea;
+    color: #8b9cf7 !important;
+}
+/* 底部 */
+body[data-theme='dark'] .status-footer { color: #888; }
+body[data-theme='dark'] .status-footer code { background: #3a3a3a; color: #b0b0b0; }
+body[data-theme='dark'] .status-footer-nav { border-top-color: #3a3a3a; }
+body[data-theme='dark'] .status-nav-green { background: #1a2a1a; border-color: #52c41a; color: #73d13d !important; }
+body[data-theme='dark'] .status-nav-green:hover { background: #52c41a; color: #fff !important; }
+body[data-theme='dark'] .status-nav-purple { background: #1e1e2e; border-color: #667eea; color: #8b9cf7 !important; }
+body[data-theme='dark'] .status-nav-purple:hover { background: #667eea; color: #fff !important; }

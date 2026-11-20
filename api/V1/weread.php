@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * 微信读书热搜榜处理器
  *
@@ -45,11 +45,20 @@ class WereadHotSearch {
                     }
                 }
 
+                // 正确的 reader 链接 ID 在 deepLink 的 v= 参数里（短 hash），不是纯数字 bookId
+                // deepLink 示例: https://weread.qq.com/book-detail?type=1&v=a2732a40813ab7bb3g0112e7
                 $bookId = '';
-                foreach (array('bookId', 'book_id', 'id') as $k) {
-                    if (isset($bookInfo[$k]) && (is_string($bookInfo[$k]) || is_numeric($bookInfo[$k]))) {
-                        $bookId = $bookInfo[$k];
-                        break;
+                if (isset($bookInfo['deepLink']) && is_string($bookInfo['deepLink'])
+                    && preg_match('/[?&]v=([a-zA-Z0-9]+)/', $bookInfo['deepLink'], $m)) {
+                    $bookId = $m[1];
+                }
+                // fallback：如果 deepLink 没匹配到，用 bookId（纯数字也能工作，reader 会自动跳转）
+                if (empty($bookId)) {
+                    foreach (array('bookId', 'book_id', 'id') as $k) {
+                        if (isset($bookInfo[$k]) && (is_string($bookInfo[$k]) || is_numeric($bookInfo[$k]))) {
+                            $bookId = $bookInfo[$k];
+                            break;
+                        }
                     }
                 }
 
@@ -65,8 +74,8 @@ class WereadHotSearch {
                 $items[] = array(
                     'index' => count($items) + 1,
                     'title' => $title,
-                    'url'   => $bookId ? ('https://weread.qq.com/web/bookDetail/' . $bookId) : 'https://weread.qq.com/',
-                    'hot'   => $hot ? (is_numeric($hot) ? (number_format($hot) . ' 人在读') : $hot) : '',
+                    'url'   => $bookId ? ('https://weread.qq.com/web/reader/' . $bookId) : 'https://weread.qq.com/',
+                    'hot'   => is_numeric($hot) ? number_format($hot) : $hot,
                     'desc'  => isset($bookInfo['intro']) ? $bookInfo['intro'] : (isset($bookInfo['bookIntro']) ? $bookInfo['bookIntro'] : ''),
                     'pic'   => isset($bookInfo['cover']) ? $bookInfo['cover'] : (isset($bookInfo['img']) ? $bookInfo['img'] : '')
                 );
@@ -93,17 +102,14 @@ class WereadHotSearch {
             "Referer: https://weread.qq.com/"
         );
 
-        $ch = curl_init();
+        $ch = smartCurlInit();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_ENCODING, 'gzip,deflate');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 
-        $output = curl_exec($ch);
+        $output = smartCurlExec($ch, 'weread');
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 

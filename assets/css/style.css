@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    热搜榜首页样式表（日间模式）
    ============================================================
    
@@ -14,6 +14,20 @@
    - 看不懂的属性可以先搜一下，注释里有"新手提示"的地方重点看
    ============================================================ */
 
+
+/* ============================================================
+   0. 主题切换防闪烁
+   ============================================================ 
+   切换 data-theme 时，临时禁用所有元素的 transition 动画，
+   避免颜色/背景在过渡过程中产生视觉恍惚。
+   JS 中 setTheme() 会临时给 body 加 .no-theme-transition 类，
+   下一帧再移除，所以这个类只是瞬间生效。
+   ============================================================ */
+.no-theme-transition,
+.no-theme-transition * {
+    transition: none !important;
+    animation: none !important;
+}
 
 /* ============================================================
    1. 全局重置（所有页面元素统一起点）
@@ -59,10 +73,10 @@ html, body {
    ============================================================ */
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    /* 背景：淡蓝灰色渐变，从上到下由浅到稍深 */
-    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+    /* 背景：暖粉灰渐变 —— 最底层（body）最暗，衬托白色卡片 */
+    background: linear-gradient(135deg, #ece3e8 0%, #e2d8de 100%);
     min-height: 100vh;
-    color: #222;
+    color: #2d2a32;
     /* 防止移动端任何元素溢出导致横向滚动条 */
     overflow-x: hidden;
     max-width: 100%;
@@ -75,16 +89,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: #f0eaee;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #b0b0b0;
+    background: #c0b6bb;
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #999;
+    background: #a0969b;
 }
 
 
@@ -95,7 +109,7 @@ body {
    使用 sticky 定位，滚动时固定在顶部
    ============================================================ */
 .header {
-    background: #fff;
+    background: #ffffff;
     padding: 15px 40px;
     display: flex;
     justify-content: space-between;
@@ -104,8 +118,8 @@ body {
     position: sticky;
     top: 0;
     z-index: 100;
-    border-bottom: 1px solid #e8e8e8;
-    box-shadow: none;
+    border-bottom: 1px solid #e2d8de;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 }
 
 /* ---------- 左侧：Logo + 站点标题 ---------- */
@@ -144,13 +158,13 @@ body {
 .site-title {
     font-size: 20px;
     font-weight: 600;
-    color: #1a1a1a;
+    color: #1f2937;
     line-height: 1.2;
 }
 
 .site-desc {
     font-size: 12px;
-    color: #888;
+    color: #888888;
     line-height: 1.2;
 }
 
@@ -165,12 +179,12 @@ body {
 .header-time {
     font-size: 15px;
     font-weight: 500;
-    color: #333;
+    color: #333333;
 }
 
 .header-date {
     font-size: 12px;
-    color: #888;
+    color: #888888;
 }
 
 /* ---------- 右侧：功能按钮（夜间模式/设置/测试）---------- */
@@ -184,9 +198,9 @@ body {
     width: 38px;
     height: 38px;
     border-radius: 50%;
-    border: none;
-    background: #f0f2f5;
-    color: #666;
+    border: 1px solid #e8e0e4;
+    background: #f5eff3;
+    color: #6b5f66;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -197,8 +211,9 @@ body {
 }
 
 .header-icon-btn:hover {
-    background: #e0e2e5;
-    color: #333;
+    background: #ebe3e7;
+    color: #2d2a32;
+    border-color: #ded4da;
 }
 
 .header-icon-btn .iconfont {
@@ -207,80 +222,88 @@ body {
 
 
 /* ============================================================
-   4. 通知栏（样式已移至单独文件）
-   ============================================================
-   见：assets/css/notice-bar.css
-       assets/css/notice-bar-dark.css
-       assets/css/notice-bar-responsive.css
+   4. 通知栏（已合并至此）
    ============================================================ */
 
-
-/* ============================================================
-   5. 分类 Tab 栏（首页 + 分类页共用）
-   ============================================================
-   纯 <a> 链接，点击跳转 / 或 /category/{slug}
-   高亮通过 category-tab.active 控制
-   ============================================================ */
-.category-tabs {
+.notice-bar {
+    background: #ffffff;
+    margin: 20px 30px;
+    padding: 16px 20px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
-    gap: 4px;
-    max-width: 1600px;
-    margin: 16px auto 0;
-    padding: 0 30px;
-    overflow-x: auto;
-    white-space: nowrap;
-    scrollbar-width: none;  /* Firefox */
+    gap: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #ffe5e7;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
 }
-.category-tabs::-webkit-scrollbar {
-    display: none;  /* Chrome/Safari */
-}
-.category-tab {
+
+.notice-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+    /* 让图标和右边文字垂直居中对齐 */
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 7px 14px;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(245, 34, 45, 0.1);
+    color: #f5222d;
+}
+
+.notice-content {
+    flex: 1;
     font-size: 13px;
-    font-weight: 500;
-    color: #555;
-    background: #fff;
-    border: 1px solid #e8e8e8;
-    border-radius: 18px;
-    text-decoration: none;
-    transition: all 0.15s ease;
+    color: #374151;
+    line-height: 1.6;
+}
+
+/* 通知栏内联样式搬迁 */
+.notice-refresh-icon { font-size: 12px; }
+.notice-source { color: #888888; font-size: 12px; }
+.notice-repo   { color: #888888; font-size: 12px; }
+.notice-content a { font-weight: 700; text-decoration: none; color: #667eea; }
+.notice-content a:hover { text-decoration: none; }
+
+.notice-content p {
+    margin-bottom: 4px;
+}
+
+.notice-extra {
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
 }
-.category-tab:hover {
-    color: #667eea;
-    border-color: #c0c4e8;
-    background: #f6f6ff;
-}
-.category-tab.active {
-    color: #fff;
+
+.notice-extra .test-link {
+    display: inline-block;
+    padding: 6px 14px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-color: transparent;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.35);
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 13px;
+    transition: all 0.2s;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
 }
-.category-tab-icon {
-    font-size: 14px;
-    line-height: 1;
+
+.notice-extra .test-link:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
 }
-.category-tab-count {
-    font-size: 11px;
-    color: #aaa;
-    background: #f5f5f5;
-    padding: 1px 6px;
-    border-radius: 8px;
-    line-height: 1.4;
-}
-.category-tab.active .category-tab-count {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.25);
+
+.notice-content .src-list {
+    color: #6b7280;
+    font-size: 12px;
 }
 
 
 /* ============================================================
-   6. 主内容区 + 卡片网格布局
+   5. 主内容区 + 卡片网格布局
    ============================================================ 
    网格布局用 CSS Grid，自动适应屏幕宽度：
    - 桌面端：多列并排
@@ -289,49 +312,6 @@ body {
    ============================================================ */
 .main-content {
     padding: 0 30px 30px;
-}
-
-/* ============================================================
-   分类分组区块（资讯 / 科技 / 社区 / 视频 / 知识 / 游戏）
-   ============================================================ */
-.category-section {
-    margin-bottom: 28px;
-}
-.category-section:last-child {
-    margin-bottom: 0;
-}
-.category-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 18px;
-    font-weight: 700;
-    color: #1a1a1a;
-    margin: 24px 0 14px;
-    padding-bottom: 8px;
-    border-bottom: 2px solid #f0f0f0;
-    line-height: 1;
-}
-.category-section:first-child .category-title {
-    margin-top: 8px;
-}
-.category-icon {
-    font-size: 20px;
-    line-height: 1;
-}
-.category-count {
-    font-size: 12px;
-    font-weight: 500;
-    color: #888;
-    background: #f5f5f5;
-    padding: 2px 8px;
-    border-radius: 10px;
-    margin-left: 4px;
-}
-/* _other 兜底组稍微降一点存在感 */
-#cat-_other .category-title {
-    font-weight: 500;
-    color: #666;
 }
 
 /* 卡片网格容器 */
@@ -360,25 +340,26 @@ body {
    body 用 flex:1 占满剩余空间，这样整体高度就固定了。
    ============================================================ */
 .hot-card {
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    background: #f2eaf0;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     overflow: hidden;
-    border: 1px solid #f0f0f0;
+    border: 1px solid #d9cfd4;
     display: flex;
     flex-direction: column;
-    /* 卡片固定高度，内容超出内部滚动，不撑开页面 */
-    height: 400px;
+    height: 420px;   /* PC 端固定高度，所有模块等高 */
+    /* ⚠️ 重要：作为 .hot-grid 的 grid child，必须 min-width:0
+       否则长标题的固有宽度会撑开卡片，导致整个 grid 布局错乱 */
+    min-width: 0;
 }
 
 /* ---------- 卡片头部（平台名称 + 标签）---------- */
 .card-header {
     padding: 10px 16px;
-    border-bottom: 1px solid #f5f5f5;
+    border-bottom: 1px solid #e0d6dc;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    /* flex-shrink: 0 表示不被压缩，始终保持自身高度 */
     flex-shrink: 0;
 }
 
@@ -386,9 +367,19 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 15px;
-    font-weight: 600;
-    color: #1a1a1a;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+/* 平台名链接（原先是 span，改成 a 利于 SEO） */
+.card-title-link {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.card-title-link:hover {
+    color: #667eea;
 }
 
 /* iconfont 图标基础样式 */
@@ -402,10 +393,11 @@ span.iconfont,
 
 .card-tag {
     font-size: 12px;
-    color: #666;
-    background: #f0f0f0;
-    padding: 4px 10px;
-    border-radius: 20px;
+    color: #6b5f66;
+    background: #f5eff3;
+    box-shadow: inset 0 0 0 1px #d4c9ce;
+    padding: 3px 10px;
+    border-radius: 10px;
 }
 
 .card-tag-wrap {
@@ -416,12 +408,12 @@ span.iconfont,
 }
 
 .card-source-link {
-    font-size: 11px;
-    color: #888;
+    font-size: 12px;
+    color: #888888;
     background: #fafafa;
     border: 1px solid #d9d9d9;
-    padding: 4px 10px;
-    border-radius: 20px;
+    padding: 3px 10px;
+    border-radius: 10px;
     text-decoration: none;
     transition: all 0.2s ease;
 }
@@ -432,56 +424,91 @@ span.iconfont,
     background: #e6f7ff;
 }
 
-/* ---------- 卡片内容区（滚动容器）---------- 
-   新手提示：
-   - card-body 是滚动容器，超出高度就出现滚动条
-   - hot-list 是数据列表，在 card-body 里面
-   - card-expand-bar 是展开条，跟在列表后面，和数据一起滚动
+/* ---------- 卡片内容区 ---------- 
+   固定撑满 header/footer 之间的空间（flex:1）
+   折叠态 overflow:hidden（不滚）
+   展开态 overflow-y:auto（内部滚）
    
-   为什么用 min-height: 0？
-   flex 布局子元素默认 min-height: auto，会导致内容撑开容器，
-   设置 min-height:0 后就会遵守 flex 分配的高度，超出才滚动。
+   内部：hot-list 用 grid-template-rows: repeat(11, 1fr) 永远 11 等分
+   不管数据源有几条，11 行固定存在
+   
+   ⚠️ 关键：min-width:0 + width:100% —— 防止子元素（长标题）撑宽容器！
+      flex 子项默认 min-width:auto，长内容会无视父级宽度约束直接撑开。
+      这是 CSS 里最经典的"为什么 flex 不截断文字"陷阱。
 */
 .card-body {
-    padding: 4px 0 0 0;
+    padding: 0;
     flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    box-sizing: border-box;
+    width: 100%;
     min-height: 0;
+    min-width: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+/* 展开态：可滚动 */
+.hot-card[data-expanded="1"] .card-body {
+    overflow-y: auto;
 }
 
-/* 热搜列表（SEO：ol 表示有序列表，适合排名）
-   新手提示：ol 有默认的列表样式（数字），需要重置 */
+/* 热搜列表：11 行 grid（10 条数据 + 1 行展开条占位） */
 .hot-list {
     list-style: none;
     margin: 0;
     padding: 0;
+    flex: 1;
+    /* ===== 纵向约束（修高度溢出）===== */
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+    /* ===== 横向约束（修宽度溢出 —— 这次的根因！）===== */
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    display: grid;
+    grid-template-rows: repeat(11, 1fr);
+    /* grid 默认 min-content 对齐，必须加这个让 cell 被父级宽度约束 */
+    grid-template-columns: 1fr;
+    /* 折叠态：不要 overflow:hidden，它会裁掉 expand-bar 的 border
+       让父级 .card-body 的 overflow:hidden 来裁剪就行 */
+    overflow: visible;
+}
+/* 展开态：取消 grid，恢复 flex column + expand-bar 沉底 */
+.hot-card[data-expanded="1"] .hot-list {
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
 }
 
-/* 如果想让 ol 显示序号，可以用这个（可选）：
-.hot-list {
-    counter-reset: item;
-}
-.hot-item::before {
-    counter-increment: item;
-    content: counter(item);
-} */
-
-/* 展开/折叠控制条
-   新手提示：
-   - 折叠状态（默认）：position: sticky 固定在底部，紧贴 card-footer，没有空隙
-   - 展开状态（data-expanded="1"）：position: static，跟在数据最后面，随数据滚动
-   - 为什么用 sticky 而不是 fixed？因为 sticky 是相对于滚动容器的，不脱离文档流 */
+/* 展开/折叠控制条（在 hot-list 内部，grid 自动分配 1/11 高度） */
 .card-expand-bar {
-    position: sticky;
-    bottom: 0;
-    z-index: 1;
+    margin: 0;
+    /* 作为 <li> 需要隐藏序号 */
+    list-style: none;
+    /* border 算进 grid 分配的高度，和 .hot-item 完全等高 */
+    box-sizing: border-box;
+    /* ===== 纵向 + 横向双重约束 ===== */
+    min-height: 0;
+    height: 100%;
+    width: 100%;
+    min-width: 0;
 }
-
-/* 展开后，取消 sticky，让展开条跟数据一起滚 */
+/* 占位模式：数据 ≤ displayLimit 时，展开条留空位但不显示 */
+.card-expand-bar.is-placeholder {
+    visibility: hidden;
+    pointer-events: none;
+}
+/* 展开态：取消等分，沉到底部 */
 .hot-card[data-expanded="1"] .card-expand-bar {
-    position: static;
+    margin-top: auto;
+    height: auto;
+    min-height: unset;
+    overflow: visible;
+}
+.hot-card[data-expanded="1"] .hot-item {
+    height: auto;
+    min-height: unset;
+    overflow: visible;
 }
 
 /* ---------- 卡片内部滚动条样式（比全局细一点）---------- */
@@ -495,18 +522,18 @@ span.iconfont,
 }
 
 .card-body::-webkit-scrollbar-thumb {
-    background: #ddd;
+    background: #c0b6bb;
     border-radius: 2px;
 }
 
 .card-body::-webkit-scrollbar-thumb:hover {
-    background: #ccc;
+    background: #a0969b;
 }
 
 /* Firefox 滚动条 */
 .card-body {
     scrollbar-width: thin;
-    scrollbar-color: #ddd transparent;
+    scrollbar-color: #c0b6bb transparent;
 }
 
 
@@ -519,8 +546,27 @@ span.iconfont,
     display: flex;
     align-items: center;
     padding: 4px 16px;
+    /* 透明上下 border：与 .hot-item-expand 的 border-top/bottom 各1px 对齐，
+       确保 border-box 下 padding+border 总量一致，
+       这样 grid 分配给每个 child 的高度里，内容区空间相同 */
+    border-top: 1px solid transparent;
+    border-bottom: 1px solid transparent;
     cursor: pointer;
     transition: background 0.15s;
+    /* ===== grid child 纵向 + 横向双重约束 ===== */
+    min-height: 0;
+    height: 100%;
+    width: 100%;
+    min-width: 0;
+    /* 注意：不要加 overflow:hidden —— 会裁掉 tooltip（现在 tooltip 已改 JS 版但保持一致）
+       截断内容由内部 .hot-title 自己处理 */
+}
+
+/* 展开态：恢复自然高度 */
+.hot-card[data-expanded="1"] .hot-item {
+    display: flex;
+    height: auto;
+    min-height: unset;
 }
 
 .hot-item:hover {
@@ -544,30 +590,36 @@ span.iconfont,
 /* 前三名特殊颜色（红橙黄渐变） */
 .rank.top1 {
     background: #ff4d4f;
-    color: #fff;
+    color: #ffffff;
 }
 
 .rank.top2 {
     background: #ff7a45;
-    color: #fff;
+    color: #ffffff;
 }
 
 .rank.top3 {
     background: #ffa940;
-    color: #fff;
+    color: #ffffff;
 }
 
 /* 第4名及以后：灰色背景 */
 .rank:not(.top1):not(.top2):not(.top3) {
-    background: #e8e8e8;
-    color: #444;
+    background: #d4c9ce;
+    color: #4b4046;
 }
 
-/* ---------- 中间：热搜标题 ---------- */
+/* ---------- 中间：热搜标题（<a> 标签，给爬虫追踪链接）---------- */
 .hot-title {
     flex: 1;
+    /* a 标签必须 block 才能让 ellipsis 生效 */
+    display: block;
+    /* 关键：min-width:0 让 flex:1 真正生效 —— flex 子项默认 min-width:auto，
+       长标题不会被压缩到内容宽度以下，会把右侧 .hot-heat 挤出容器！ */
+    min-width: 0;
     font-size: 14px;
-    color: #222;
+    color: #222222;
+    text-decoration: none;  /* a 标签默认有下划线，必须去掉 */
     /* 新手提示：这三行组合实现"文字超出显示省略号"效果 */
     overflow: hidden;
     text-overflow: ellipsis;
@@ -584,13 +636,41 @@ span.iconfont,
 /* ---------- 右侧：热度值 ---------- */
 .hot-heat {
     font-size: 12px;
-    color: #666;
+    color: #666666;
     margin-left: 10px;
-    flex-shrink: 0;
+    /* 关键：固定在右侧不参与 flex 压缩
+       6列窄卡时 title 再挤也不会把热度值挤掉 */
+    flex: 0 0 auto;
+    white-space: nowrap;     /* 防止数字/单位换行 */
+    /* inline-flex 让火苗图标和数字精确垂直居中对齐 */
+    display: inline-flex;
+    align-items: center;
+    text-align: right;
 }
 
 .hot-heat .icon-xiaohuomiao {
     color: #ff4d4f;
+    font-size: 12px;
+    margin-right: 2px;
+    /* flex 容器里不需要 vertical-align */
+}
+
+/* 知乎日报：阅读时长（📖 N分钟），换个偏暖的颜色 */
+.hot-heat.hot-readtime {
+    color: #c77dff;
+    font-size: 11px;
+}
+
+/* 第一财经：周榜 TOP 徽章，做成胶囊样式 */
+.hot-heat.hot-badge {
+    font-size: 10px;
+    color: #b8860b;
+    background: linear-gradient(135deg, #fff8e1, #ffe082);
+    border: 1px solid #ffd54f;
+    border-radius: 10px;
+    padding: 1px 6px;
+    line-height: 1.3;
+    font-weight: 600;
 }
 
 
@@ -606,74 +686,80 @@ span.iconfont,
    都是加在 .card-expand-bar 那个 div 上的，二选一。
    ============================================================ */
 
-/* ---------- 折叠状态：紫色"展开全部"条 ---------- */
+/* ---------- 折叠状态：绿色"展开全部"条（与展开态、暗黑模式统一） ---------- */
 .hot-item-expand {
     display: flex;
     align-items: center;
-    padding: 5px 16px;
-    background: #f0f0ff;
-    border-top: 1px solid #e8e8ff;
+    padding: 4px 16px;
+    background: linear-gradient(90deg, #f6ffed 0%, #eaffdb 100%);
+    border-top: 1px solid #b7eb8f;
+    border-bottom: 1px solid #b7eb8f;
     cursor: pointer;
     font-weight: 600;
     transition: background 0.15s;
 }
 
 .hot-item-expand:hover {
-    background: #e6dcff;
+    background: #d9f7be;
 }
 
-/* 左侧小图标（带箭头的紫色方块） */
+/* 左侧小图标（绿色渐变方块，与 .rank 尺寸对齐 → 视觉上等高） */
 .rank-expand {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 12px;
-    /* 紫色渐变，和回到顶部按钮同色系 */
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #fff;
+    background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);
+    color: #ffffff;
     border-radius: 4px;
     margin-right: 10px;
     flex-shrink: 0;
 }
 
 .rank-expand .iconfont {
-    font-size: 10px;
+    font-size: 11px;
 }
+/* 折叠态：箭头旋转 -90° 朝右（▶），暗示"点我看更多" */
+.hot-item-expand .rank-expand .iconfont {
+    transform: rotate(-90deg);
+}
+/* 展开态：朝上（↑），默认方向不用改 */
 
 /* 中间标题文字 */
 .hot-item-expand .expand-title {
     flex: 1;
     font-size: 12px;
-    color: #531dab;
+    color: #389e0d;
 }
 
 /* 右侧"点击展开"小标签 */
 .hot-item-expand .expand-arrow {
     font-size: 10px;
-    color: #722ed1;
-    background: #fff;
+    color: #52c41a;
+    background: #ffffff;
     padding: 1px 6px;
     border-radius: 8px;
-    border: 1px solid #d3adf7;
+    border: 1px solid #b7eb8f;
     margin-left: 8px;
     flex-shrink: 0;
     font-weight: 500;
 }
 
 .hot-item-expand:hover .expand-arrow {
-    background: #f9f0ff;
-    border-color: #722ed1;
+    background: #f6ffed;
+    border-color: #52c41a;
 }
 
 /* ---------- 展开状态：绿色"已展开全部"条 ---------- */
 .hot-item-footer {
     display: flex;
     align-items: center;
-    padding: 5px 16px;
-    background: #f6ffed;
-    border-top: 1px solid #d9f7be;
+    padding: 4px 16px;
+    background: linear-gradient(90deg, #f0fff0 0%, #e6f7e6 100%);
+    border-top: 1px solid #d4ead4;
+    border-bottom: 1px solid #d4ead4;
     cursor: pointer;
     font-weight: 600;
     transition: background 0.15s;
@@ -700,8 +786,8 @@ span.iconfont,
    9. 卡片底部（更新时间 + 刷新按钮）
    ============================================================ */
 .card-footer {
-    padding: 5px 16px;
-    border-top: 1px solid #e8e8e8;
+    padding: 7px 16px;
+    border-top: 1px solid #d8cdd3;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -710,22 +796,28 @@ span.iconfont,
 
 .update-time {
     font-size: 13px;
-    color: #666;
+    color: #666666;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
 }
 
 /* ---------- 刷新按钮 ---------- */
 .refresh-btn {
-    background: #fff;
-    border: 1px solid #e0e0e0;
+    background: #fff8fa;
+    border: 1px solid #c4b8bf;
     cursor: pointer;
-    font-size: 12px;
-    padding: 4px 12px;
-    border-radius: 14px;
+    font-size: 13px;
+    padding: 3px 10px;
+    border-radius: 8px;
     transition: all 0.2s ease;
-    color: #666;
+    color: #5a4e55;
     font-weight: 500;
-    position: relative;
-    overflow: hidden;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
 }
 
 /* 刷新图标（用 ::before 伪元素 + iconfont 实现） */
@@ -735,23 +827,23 @@ span.iconfont,
     font-style: normal;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    margin-right: 4px;
-    font-size: 13px;
+    margin-right: 0; /* gap 已处理 */
+    font-size: 14px;
     display: inline-block;
     transition: transform 0.3s ease;
-    color: #999;
+    color: #7a6e75;
 }
 
 .refresh-btn:hover {
-    background: #f5f5f5;
-    border-color: #bbb;
-    color: #333;
+    background: #f0e7ec;
+    border-color: #a898a0;
+    color: #2d2a32;
 }
 
 /* hover 时图标旋转 180 度 */
 .refresh-btn:hover::before {
     transform: rotate(180deg);
-    color: #666;
+    color: #5a4e55;
 }
 
 .refresh-btn:active {
@@ -761,7 +853,7 @@ span.iconfont,
 /* 加载中状态（禁用 + 旋转动画） */
 .refresh-btn:disabled {
     background: #f5f5f5;
-    color: #bbb;
+    color: #bbbbbb;
     cursor: not-allowed;
     border-color: #e0e0e0;
     opacity: 0.7;
@@ -770,7 +862,7 @@ span.iconfont,
 .refresh-btn:disabled::before {
     /* 新手提示：spin 动画在下面 @keyframes 定义，1秒一圈无限循环 */
     animation: spin 1s linear infinite;
-    color: #bbb;
+    color: #bbbbbb;
 }
 
 /* 旋转动画（刷新按钮加载中用） */
@@ -783,7 +875,7 @@ span.iconfont,
 .loading {
     text-align: center;
     padding: 40px 20px;
-    color: #666;
+    color: #666666;
     font-size: 14px;
 }
 
@@ -799,10 +891,10 @@ span.iconfont,
    10. 页脚
    ============================================================ */
 .footer {
-    background: #fff;
+    background: #ffffff;
     padding: 16px 30px;
     margin-top: 20px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid #e2d8de;
 }
 
 .footer-content {
@@ -818,8 +910,18 @@ span.iconfont,
     display: flex;
     align-items: center;
     gap: 8px;
+    /* justify-content:center：让绿点+运行正常+耗时+状态面板 整团紧凑居中 */
+    justify-content: center;
     font-size: 13px;
-    color: #666;
+    color: #666666;
+    line-height: 1;
+}
+
+/* .status 直接子 span 统一用 flex 居中，解决匿名文本节点行高不一致问题 */
+.status > span {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
 }
 
 .status-dot {
@@ -845,6 +947,7 @@ span.iconfont,
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    line-height: 1;
     transition: color 0.2s;
 }
 .footer-status-link:hover {
@@ -870,7 +973,7 @@ span.iconfont,
     height: 44px;
     /* 紫色渐变，和展开条左侧图标同色系 */
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #fff;
+    color: #ffffff;
     border: none;
     border-radius: 50%;
     cursor: pointer;
@@ -901,7 +1004,7 @@ span.iconfont,
 .back-to-top:hover {
     background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
     border-color: #667eea;
-    color: #fff;
+    color: #ffffff;
     transform: translateY(-3px) scale(1.05);
     box-shadow: 0 6px 18px rgba(102, 126, 234, 0.6);
 }
@@ -929,12 +1032,12 @@ span.iconfont,
     top: 80px;
     left: 50%;
     transform: translateX(-50%) translateY(-20px);
-    background: #fff;
+    background: #ffffff;
     padding: 10px 20px;
     border-radius: 6px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     font-size: 13px;
-    color: #333;
+    color: #333333;
     z-index: 10000;
     opacity: 0;
     transition: all 0.3s ease;
@@ -965,64 +1068,47 @@ span.iconfont,
 
 
 /* ============================================================
-   14. 自定义 Tooltip（鼠标移入显示的提示文字）
+   14. Tooltip（JS 动态版）
    ============================================================
-   用法：给元素加 data-tooltip="提示文字" 属性
+   旧方案：CSS 伪元素 [data-tooltip]::before
+     → 问题：被 .card-body overflow:hidden 裁掉
    
-   显示规则：
-   - 默认：向上弹出
-   - 前3条热搜（.hot-item:nth-child(-n+3)）：向下弹出
-     （因为前3条离顶部近，向上弹会被导航栏挡住）
-   
-   新手提示：用 CSS 伪元素 ::before 实现，
-   content: attr(data-tooltip) 可以读取元素的属性值作为内容
+   新方案：JS 创建 <div class="js-tooltip"> 插入 <body>
+     → 用 position: fixed 定位，完全不受父级 overflow 限制
    ============================================================ */
-[data-tooltip] {
-    position: relative;
-    cursor: pointer;
+
+/* 禁用旧的 CSS 伪元素 tooltip（改用 JS 版） */
+[data-tooltip]::before,
+[data-tooltip]::after {
+    display: none !important;
 }
 
-[data-tooltip]::before {
-    /* 读取元素的 data-tooltip 属性值作为提示文字 */
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: calc(100% + 12px);
-    left: 50%;
-    transform: translateX(-50%) translateY(6px);
+/* JS 版 tooltip */
+.js-tooltip {
+    position: fixed;
+    z-index: 9999;
     background: #1a1a2e;
     color: #ffffff;
     padding: 8px 14px;
-    border-radius: 8px;
+    border-radius: 6px;
     font-size: 12px;
-    line-height: 1.5;
-    white-space: normal;
-    word-break: break-all;
+    line-height: 1.4;
+    max-width: 320px;
+    white-space: normal;        /* 允许换行，长标题不会超出视口 */
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.18s ease, transform 0.18s ease;
+    transform: translateY(4px);
+    transition: opacity 0.15s, transform 0.15s, visibility 0s linear 0.15s;
     pointer-events: none;
-    z-index: 9999;
-    max-width: 320px;
-    min-width: 80px;
-    text-align: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
 }
 
-[data-tooltip]:hover::before {
+.js-tooltip.visible {
     opacity: 1;
     visibility: visible;
-    transform: translateX(-50%) translateY(0);
-}
-
-/* 前 3 条热搜的 tooltip 向下弹出，避免被顶部导航栏遮挡 */
-.hot-item:nth-child(-n+3)[data-tooltip]::before {
-    bottom: auto;
-    top: calc(100% + 12px);
-    transform: translateX(-50%) translateY(-6px);
-}
-
-.hot-item:nth-child(-n+3)[data-tooltip]:hover::before {
-    transform: translateX(-50%) translateY(0);
+    transform: translateY(0);
+    transition: opacity 0.12s, transform 0.12s, visibility 0s;
 }
 
 
@@ -1037,3 +1123,187 @@ span.iconfont,
    ============================================================
    见：assets/css/theme-dark.css
    ============================================================ */
+
+/* ---------- 内联样式搬迁：index.php + home/footer.php ---------- */
+
+/* 闪电图标：页面加载/生成耗时前 */
+.gen-time-bolt {
+    font-size: 12px;
+    vertical-align: middle;
+    margin-right: 2px;
+}
+
+/* 卡片内联图标：错误/空数据前缀 */
+.card-inline-icon {
+    margin-right: 4px;
+}
+
+/* 热度火苗图标 */
+.hot-fire-icon {
+    font-size: 12px;
+    margin-right: 2px;
+}
+
+/* 更新时间前缀图标 */
+.update-time-icon {
+    font-size: 12px;
+    margin-right: 3px;
+}
+
+/* ---- home/footer.php ---- */
+
+/* 页脚生成时间（inline-flex 让闪电图标和文字精确居中对齐） */
+.footer-gen-time {
+    margin-left: 12px;
+    font-size: 12px;
+    color: #999999;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+    gap: 2px;
+}
+
+/* 闪电图标（iconfont 字体行高和普通文字不同，强制 line-height:1 消除偏差） */
+.footer-gen-time .gen-time-bolt {
+    font-size: 12px;
+    line-height: 1;
+    margin-right: 0; /* gap 已处理间距 */
+}
+
+/* 纯文字部分也统一行高 */
+.footer-gen-time .gen-time-text {
+    line-height: 1;
+}
+
+/* footer-flex-push：不再推右，让 justify-content:center 统一居中 */
+.footer-flex-push {
+    display: inline-flex;
+    align-items: center;
+}
+
+/* 状态面板前的小圆点（比左边那个 8px 稍小） */
+.footer-status-dot {
+    width: 6px;
+    height: 6px;
+}
+
+
+/* ============================================================
+   17. 广告样式
+   ============================================================ */
+
+/* ---- 通用：广告角标 ---- */
+.ad-badge {
+    position: absolute;
+    background: rgba(102, 126, 234, 0.85);
+    color: #fff;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    z-index: 5;
+    letter-spacing: 1px;
+}
+
+/* ---- 顶部 banner ---- */
+.ad-banner {
+    display: block;
+    max-width: 1600px;      /* 和 .hot-grid / .footer-content 同步 */
+    margin: 16px auto;
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.2s ease;
+    text-decoration: none;
+}
+.ad-banner:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+.ad-banner img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 120px;
+    object-fit: cover;
+}
+.ad-banner .ad-badge {
+    top: 6px;
+    left: 6px;
+}
+
+/* ---- 中间插卡广告 ---- */
+.ad-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    border-radius: 12px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.ad-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.35) !important;
+}
+.ad-card .ad-badge {
+    top: 8px;
+    right: 8px;
+    left: auto;
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(4px);
+}
+.ad-card-img-wrap {
+    flex: 1;
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 12px 12px 4px;
+}
+.ad-card-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+}
+.ad-card-footer {
+    padding: 10px 14px 14px;
+    color: #fff;
+    text-align: center;
+}
+.ad-card-title {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+/* ---- 夜间模式适配（ad-card 保持品牌色，banner 保持原样）---- */
+[data-theme="dark"] .ad-card {
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.25);
+}
+[data-theme="dark"] .ad-banner {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* 响应式：移动端 banner 更紧凑 */
+@media (max-width: 768px) {
+    .ad-banner {
+        margin: 12px 10px;
+        border-radius: 6px;
+    }
+    .ad-banner img {
+        max-height: 70px;
+    }
+}
+
+/* ---- footer sitemap 分隔符 ---- */
+.footer-sep {
+    margin: 0 10px;
+    color: #ccc;
+    font-size: 12px;
+    line-height: 1;
+}

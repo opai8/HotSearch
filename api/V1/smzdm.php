@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * 什么值得买处理器
  * 数据来源: https://post.smzdm.com/rank/json_more/
@@ -58,15 +58,12 @@ class SmzdmHotSearch {
             "Accept: application/json, text/plain, */*",
             "Referer: https://www.smzdm.com/"
         );
-        $ch = curl_init();
+        $ch = smartCurlInit();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array_merge($defaultHeaders, $headers));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_ENCODING, 'gzip,deflate');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-        $output = curl_exec($ch);
+        $output = smartCurlExec($ch, 'smzdm');
         curl_close($ch);
         return $output ?: '';
     }

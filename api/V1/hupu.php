@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * 虎扑步行街热帖 API 处理器（修复版）
  *
@@ -280,14 +280,11 @@ class HupuHotSearch {
             "Referer: https://bbs.hupu.com/"
         );
 
-        $ch = curl_init();
+        $ch = smartCurlInit();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_ENCODING, 'gzip,deflate');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
         // 支持 Cookie（部分页面需要）
@@ -295,7 +292,7 @@ class HupuHotSearch {
         curl_setopt($ch, CURLOPT_COOKIEJAR, $cookieFile);
         curl_setopt($ch, CURLOPT_COOKIEFILE, $cookieFile);
 
-        $output = curl_exec($ch);
+        $output = smartCurlExec($ch, 'hupu');
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 

@@ -20,8 +20,8 @@ Options -Indexes
     Allow from all
 </Files>
 
-# ---- 允许 clear_opcache.php（OPcache + 页面缓存清理接口）----
-<Files "clear_opcache.php">
+# ---- 允许 clear_cache.php（页面缓存清理接口）----
+<Files "clear_cache.php">
     Order Allow,Deny
     Allow from all
 </Files>

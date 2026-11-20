@@ -6,6 +6,34 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "1347460",
+      "name": "360chrome",
+      "font_class": "chrome",
+      "unicode": "e645",
+      "unicode_decimal": 58949
+    },
+    {
+      "icon_id": "37884957",
+      "name": "小红书",
+      "font_class": "xiaohongshu1",
+      "unicode": "e65f",
+      "unicode_decimal": 58975
+    },
+    {
+      "icon_id": "998169",
+      "name": "足球",
+      "font_class": "zuqiu",
+      "unicode": "e61e",
+      "unicode_decimal": 58910
+    },
+    {
+      "icon_id": "8288958",
+      "name": "安全",
+      "font_class": "anquan",
+      "unicode": "e85c",
+      "unicode_decimal": 59484
+    },
+    {
       "icon_id": "4318818",
       "name": "Ai",
       "font_class": "Ai",
@@ -102,13 +130,6 @@
       "font_class": "doubanwang",
       "unicode": "eb78",
       "unicode_decimal": 60280
-    },
-    {
-      "icon_id": "37856344",
-      "name": "小红书",
-      "font_class": "xiaohongshu",
-      "unicode": "eb79",
-      "unicode_decimal": 60281
     },
     {
       "icon_id": "41215351",

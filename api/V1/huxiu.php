@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * 虎嗅网处理器
  *
@@ -63,9 +63,9 @@ class HuxiuHotSearch {
                 $hot = '';
                 if (isset($v['count_info']) && is_array($v['count_info'])) {
                     if (isset($v['count_info']['agree_num'])) {
-                        $hot = $v['count_info']['agree_num'] . ' 👍';
+                        $hot = $v['count_info']['agree_num'];
                     } elseif (isset($v['count_info']['total_comment_num'])) {
-                        $hot = $v['count_info']['total_comment_num'] . ' 💬';
+                        $hot = $v['count_info']['total_comment_num'];
                     }
                 }
 
@@ -111,17 +111,14 @@ class HuxiuHotSearch {
             "Referer: https://www.huxiu.com/"
         );
 
-        $ch = curl_init();
+        $ch = smartCurlInit();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_ENCODING, 'gzip,deflate');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 
-        $output = curl_exec($ch);
+        $output = smartCurlExec($ch, 'huxiu');
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 

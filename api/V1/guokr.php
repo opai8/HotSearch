@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * 果壳网处理器
  *
@@ -82,7 +82,7 @@ class GuokrHotSearch {
                     'index' => count($items) + 1,
                     'title' => $title,
                     'url'   => $url,
-                    'hot'   => $likes ? (is_numeric($likes) ? ($likes . ' 👍') : $likes) : '',
+                    'hot'   => is_numeric($likes) ? number_format($likes) : ($likes ?: ''),
                     'desc'  => isset($v['summary']) ? $v['summary'] : (isset($v['description']) ? $v['description'] : ''),
                     'pic'   => isset($v['image']) ? $v['image'] : (isset($v['cover']) ? $v['cover'] : '')
                 );
@@ -109,17 +109,14 @@ class GuokrHotSearch {
             "Referer: https://www.guokr.com/"
         );
 
-        $ch = curl_init();
+        $ch = smartCurlInit();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_ENCODING, 'gzip,deflate');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 
-        $output = curl_exec($ch);
+        $output = smartCurlExec($ch, 'guokr');
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 

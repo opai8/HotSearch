@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * 知乎热榜处理器（使用官方API）
  *
@@ -67,16 +67,13 @@ class ZhihuHotSearch {
             "Referer: https://www.zhihu.com/hot"
         );
 
-        $ch = curl_init();
+        $ch = smartCurlInit();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_ENCODING, 'gzip,deflate');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
 
-        $output = curl_exec($ch);
+        $output = smartCurlExec($ch, 'zhihu');
         curl_close($ch);
 
         return $output ?: '';

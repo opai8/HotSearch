@@ -1,0 +1,217 @@
+﻿/**
+ * 归档页样式
+ * 对应页面：archive.php
+ * Hero / 面包屑 复用 platform.css，本文件只管月份块 + 日期格子
+ */
+
+/* ---------- 容器 ---------- */
+.archive-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 20px 60px;
+}
+
+/* ---------- Hero （基于 platform-hero 微调）---------- */
+.archive-hero {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e8e0e4;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.archive-hero .hero-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: #f2eaf0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.archive-hero .hero-icon .iconfont { font-size: 26px; }
+.archive-hero .hero-info { flex: 1; min-width: 0; }
+.archive-hero .hero-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+}
+.archive-hero .hero-meta {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 6px;
+}
+.archive-hero .hero-actions { display: flex; gap: 10px; }
+.archive-today-btn {
+    font-size: 12px;
+    padding: 6px 14px;
+    background: #8a4fff;
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 20px;
+    transition: background 0.15s;
+    display: inline-flex;
+    align-items: center;
+}
+.archive-today-btn:hover { background: #753fe0; }
+
+/* ---------- 月份块 ---------- */
+.archive-month-block {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border: 1px solid #ece4e8;
+}
+.archive-month-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.archive-month-count {
+    font-size: 12px;
+    color: #9a8f96;
+    font-weight: normal;
+    margin-left: auto;
+    background: #f5eef2;
+    padding: 2px 10px;
+    border-radius: 12px;
+}
+
+/* ---------- 日期网格 ---------- */
+.archive-days-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 10px;
+}
+.archive-day-cell {
+    text-decoration: none;
+    background: #faf6f8;
+    border-radius: 8px;
+    padding: 12px 6px;
+    text-align: center;
+    border: 1px solid #ece4e8;
+    transition: all 0.18s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+.archive-day-cell:hover {
+    background: #8a4fff;
+    border-color: #8a4fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(138, 79, 255, 0.25);
+}
+.archive-day-cell:hover .day-num { color: #ffffff; }
+.archive-day-cell:hover .day-label { color: rgba(255,255,255,0.85); }
+
+.archive-day-cell .day-num {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1;
+}
+.archive-day-cell .day-label {
+    font-size: 11px;
+    color: #9a8f96;
+}
+
+/* 今天高亮 */
+.archive-day-cell.is-today {
+    background: #fff3f5;
+    border-color: #fb7299;
+}
+.archive-day-cell.is-today .day-num { color: #fb7299; }
+.archive-day-cell.is-today .day-label { color: #fb7299; font-weight: 600; }
+.archive-day-cell.is-today:hover {
+    background: #fb7299;
+    border-color: #fb7299;
+}
+.archive-day-cell.is-today:hover .day-num,
+.archive-day-cell.is-today:hover .day-label { color: #ffffff; }
+
+/* ---------- 空状态 ---------- */
+.archive-empty {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 60px 20px;
+    text-align: center;
+    border: 1px solid #ece4e8;
+    color: #999999;
+}
+.archive-empty .iconfont { color: #d4c9ce; display: block; margin-bottom: 12px; }
+.archive-empty p { margin: 4px 0; }
+
+/* ---------- 夜间模式 ---------- */
+@media (prefers-color-scheme: dark) {
+    .archive-hero { background: #1e1e2e; border-color: #2d2a33; }
+    .archive-hero .hero-icon { background: #2d2a33; }
+    .archive-hero .hero-title { color: #e8e0e4; }
+    .archive-month-block { background: #1e1e2e; border-color: #2d2a33; }
+    .archive-month-title { color: #e8e0e4; }
+    .archive-month-count { background: #2d2a33; color: #9a8f96; }
+    .archive-day-cell { background: #25222c; border-color: #2d2a33; }
+    .archive-day-cell:hover { background: #8a4fff; border-color: #8a4fff; }
+    .archive-day-cell .day-num { color: #e8e0e4; }
+    .archive-day-cell.is-today { background: #3a2530; border-color: #fb7299; }
+    .archive-empty { background: #1e1e2e; border-color: #2d2a33; }
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 640px) {
+    .archive-page { padding: 14px 14px 40px; }
+    .archive-hero { padding: 16px; gap: 12px; }
+    .archive-hero .hero-title { font-size: 17px; }
+    .archive-days-grid { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 8px; }
+    .archive-day-cell { padding: 10px 4px; }
+    .archive-day-cell .day-num { font-size: 18px; }
+    .archive-hero .hero-actions { width: 100%; }
+    .archive-today-btn { width: 100%; justify-content: center; }
+}
+
+/* ---------- 内联样式搬迁：archive.php ---------- */
+
+/* 面包屑分隔符 */
+.breadcrumb-sep {
+    margin: 0 6px;
+}
+
+/* Hero 区域小图标（时间/首页等） */
+.hero-info-icon {
+    font-size: 12px;
+    margin-right: 3px;
+}
+
+/* 空状态大图标 */
+.archive-empty-icon {
+    font-size: 48px;
+}
+
+/* 空状态提示文字 */
+.archive-empty-tip {
+    font-size: 13px;
+    color: #999999;
+}
+
+/* 空状态按钮间距 */
+.archive-empty-btn {
+    margin-top: 16px;
+}
+
+/* 月份标题图标 */
+.archive-month-icon {
+    font-size: 14px;
+    margin-right: 4px;
+}

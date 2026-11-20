@@ -60,8 +60,8 @@ function escapeHtml($text) {
  * @return string
  */
 function getLinkTarget() {
-    $cfg = $GLOBALS['site_config'] ?? [];
-    $val = $cfg['link_open_new_window'] ?? '_blank';
+    $cfg = isset($GLOBALS['site_config']) ? $GLOBALS['site_config'] : [];
+    $val = isset($cfg['link_open_new_window']) ? $cfg['link_open_new_window'] : '_blank';
     return ($val === '_blank') ? '_blank' : '_self';
 }
 ?>
